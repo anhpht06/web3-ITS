@@ -24,3 +24,22 @@ export default async function connectMetamask() {
     toast.error("Please install metamask");
   }
 }
+export async function checkAndConnectMetaMask() {
+  if (typeof window.ethereum !== "undefined") {
+    try {
+      const accounts = await window.ethereum.request({
+        method: "eth_accounts",
+      });
+      if (accounts.length > 0) {
+        console.log("MetaMask is connected:", accounts[0]);
+        return accounts[0];
+      } else {
+        return localStorage.removeItem("address");
+      }
+    } catch (error) {
+      console.error("Error checking MetaMask connection:", error);
+    }
+  } else {
+    console.log("MetaMask is not installed.");
+  }
+}
