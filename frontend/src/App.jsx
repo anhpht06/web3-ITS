@@ -4,17 +4,20 @@ import Home from "./components/home";
 import Login from "./components/Login";
 import Admin from "./components/Admin";
 import Header from "./Header";
+import { Web3Provider } from "./components/Web3Context";
 
 function App() {
   return (
-    <Router>
-      <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/admin" element={<Admin />} />
-      </Routes>
-    </Router>
+    <Web3Provider>
+      <Router>
+        <Header />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/admin" element={<Admin />} />
+        </Routes>
+      </Router>
+    </Web3Provider>
   );
 }
 

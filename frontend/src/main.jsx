@@ -8,7 +8,11 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <div>
       <App />
-      <ToastContainer />
+      <ToastContainer
+        position="bottom-right"
+        autoClose={1000}
+        closeOnClick={true}
+      />
     </div>
   </StrictMode>
 );
