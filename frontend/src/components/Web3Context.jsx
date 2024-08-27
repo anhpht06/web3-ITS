@@ -12,6 +12,7 @@ export function Web3Provider({ children }) {
 
   const connectMetaMask = async () => {
     const BNC_CHAIN_ID = "0x61";
+    console.log("connectMetaMask: ");
     if (window.ethereum) {
       try {
         if (window.ethereum) {
@@ -65,32 +66,40 @@ export function Web3Provider({ children }) {
   }, []);
 
   useEffect(() => {
-    const BNC_CHAIN_ID = "0x61";
-    if (window.ethereum) {
-      window.ethereum.on("accountsChanged", (accounts) => {
-        disconnectMetaMask();
-      });
-
-      window.ethereum.on("chainChanged", () => {
-        if (window.ethereum) {
-          try {
-            if (window.ethereum) {
-              const chainId = window.ethereum.chainId;
-              if (chainId !== BNC_CHAIN_ID) {
-                disconnectMetaMask();
-                toast.error("Please switch to the BNC network!");
-              }
-            }
-          } catch (error) {
-            toast.error("Error connecting MetaMask");
-            console.error("Error connecting MetaMask:", error);
+    const fetch = () => {
+      console.log("object");
+      const BNC_CHAIN_ID = "0x61";
+      if (window.ethereum) {
+        window.ethereum.on("accountsChanged", (accounts) => {
+          if (accounts.length === 0) {
+            disconnectMetaMask();
+          } else {
+            connectMetaMask();
           }
-        } else {
-          toast.error("Please install metamask");
-        }
-      });
-    }
-  }, [disconnectMetaMask]);
+        });
+
+        window.ethereum.on("chainChanged", () => {
+          if (window.ethereum) {
+            try {
+              if (window.ethereum) {
+                const chainId = window.ethereum.chainId;
+                if (chainId !== BNC_CHAIN_ID) {
+                  disconnectMetaMask();
+                  toast.error("Please switch to the BNC network!");
+                }
+              }
+            } catch (error) {
+              toast.error("Error connecting MetaMask");
+              console.error("Error connecting MetaMask:", error);
+            }
+          } else {
+            toast.error("Please install metamask");
+          }
+        });
+      }
+    };
+    fetch();
+  }, []);
 
   return (
     <Web3Context.Provider

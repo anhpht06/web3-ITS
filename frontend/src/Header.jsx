@@ -11,13 +11,14 @@ function Header() {
   const { connectMetaMask, disconnectMetaMask, address, accounts } =
     useWeb3Context();
 
+  //check if metamask is connected or not
   useEffect(() => {
-    if (address === null) {
+    if (localStorage.getItem("isMetaMaskConnected") === "false") {
       navigate("/");
     }
-  }, [address]);
+  }, [localStorage.getItem("isMetaMaskConnected")]);
   return (
-    <div className="container mx-auto flex justify-between items-center p-2 text-white bg-black bg-opacity-90">
+    <div className="container max-w-full flex justify-between items-center p-2 text-white bg-black bg-opacity-90">
       <div>
         <img className="h-12 " src={logo} alt="logo" />
       </div>

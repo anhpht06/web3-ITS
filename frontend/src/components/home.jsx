@@ -1,13 +1,16 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import LoadingAccoutInfo from "./loading/LoadingAccoutInfo";
+import StakingInformation from "./StakingInformation";
+import AccountInformation from "./AccountInformation";
+import { useWeb3Context } from "./Web3Context";
 
 function home() {
+  const { connectMetaMask, disconnectMetaMask, address, accounts } =
+    useWeb3Context();
   return (
-    <div>
-      <h1 className="mt-1 text-green-500 font-bold">day la home</h1>
-      <Link className="" to={"/login"}>
-        Login
-      </Link>
+    <div className="flex flex-row h-auto bg-gray-700 p-2 ">
+      <StakingInformation />
+      {address ? <AccountInformation /> : <LoadingAccoutInfo />}
     </div>
   );
 }
