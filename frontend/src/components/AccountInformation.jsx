@@ -6,7 +6,7 @@ function AccountInformation() {
   const { connectMetaMask, disconnectMetaMask, address, accounts } =
     useWeb3Context();
   return (
-    <div className="flex-auto basis-1/3 h-full bg-white m-1 rounded-lg shadow-xl">
+    <div className="flex-auto basis-1/3 h-full bg-white m-1 rounded-lg shadow-xl sticky top-5">
       <div className="flex flex-col p-2">
         <h1 className="text-2xl font-bold text-center uppercase">
           account information
