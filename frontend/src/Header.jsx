@@ -8,8 +8,7 @@ import { useWeb3Context } from "./components/Web3Context";
 import { useNavigate } from "react-router-dom";
 function Header() {
   const navigate = useNavigate();
-  const { connectMetaMask, disconnectMetaMask, address, accounts } =
-    useWeb3Context();
+  const { connectMetaMask, disconnectMetaMask, address } = useWeb3Context();
 
   //check if metamask is connected or not
   useEffect(() => {

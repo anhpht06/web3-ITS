@@ -1,10 +1,27 @@
 import React from "react";
 import logoBNC from "../assets/logo-BNC.svg";
-import { useWeb3Context } from "./Web3Context";
+import { useState, useEffect } from "react";
 
-function AccountInformation() {
-  const { connectMetaMask, disconnectMetaMask, address, accounts } =
-    useWeb3Context();
+function AccountInformation({
+  provider,
+  signer,
+  address,
+  contractHandleProvider,
+  contractHandleSigner,
+}) {
+  const [tokenABlance, setTokenABlance] = useState(0);
+  const [nftBAmount, setNftBAmount] = useState(0);
+  const [baseAPR, setBaseAPR] = useState(0);
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const apr = await contractHandleProvider.baseAPR();
+        setBaseAPR(apr.toString() / 100);
+      } catch (error) {}
+    };
+    fetch();
+  }, [address]);
   return (
     <div className="flex-auto basis-1/3 h-full bg-white m-1 rounded-lg shadow-xl sticky top-5">
       <div className="flex flex-col p-2">
@@ -16,17 +33,25 @@ function AccountInformation() {
           <img src={logoBNC} alt="logo BNC" className="w-8 h-8" />
           <h1 className="font-bold">{address}</h1>
         </div>
-        
-        <div className="flex gap-2 mt-3 bg-slate-400 px-1 py-1 rounded-lg">
+
+        <div className="flex gap-2 mt-3 bg-slate-400 px-1 py-1 rounded-lg items-center">
           <h1 className="font-bold">Token A :</h1>
+          <h1 className="text-xl font-bold">{tokenABlance}</h1>
         </div>
-        <div className="flex gap-2 mt-3 bg-slate-400 px-1 py-1 rounded-lg">
+        <div className="flex gap-2 mt-3 bg-slate-400 px-1 py-1 rounded-lg items-center">
           <h1 className="font-bold">NFTB :</h1>
+          <h1 className="text-xl font-bold">{nftBAmount}</h1>
         </div>
-        <div className="flex gap-2 mt-3 bg-slate-400 px-1 py-1 rounded-lg">
+        <div className="flex gap-2 mt-3 bg-slate-400 px-1 py-1 rounded-lg items-center">
           <h1 className="font-bold ">Base APR :</h1>
+          <h1 className="text-xl font-bold">{baseAPR} %</h1>
         </div>
-        <button className="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded mt-6">
+        <button
+          className="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded mt-6"
+          onClick={() => {
+            faucetTokenA();
+          }}
+        >
           Faucet 1M Token A
         </button>
       </div>

@@ -1,10 +1,30 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { useWeb3Context } from "./Web3Context";
 import IconTokenERC20 from "../assets/tokenERC20.svg";
-function StakingInformation() {
+import { id } from "ethers/lib/utils";
+function StakingInformation({
+  provider,
+  signer,
+  address,
+  contractHandleProvider,
+  contractHandleSigner,
+}) {
   const [amoutERC20, setAmoutERC20] = useState(0);
+  const [baseAPR, setBaseAPR] = useState(0);
+  const [aprBonus, setAprBonus] = useState(0);
+  const [rewards, setRewards] = useState(0);
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const apr = await contractHandleProvider.baseAPR();
+        setBaseAPR(apr.toString() / 100);
+      } catch (error) {}
+    };
+    fetch();
+  }, [address]);
+
   return (
     <div className="basis-2/3 h-full bg-white m-1 rounded-lg shadow-xl">
       <div className="flex flex-col p-2">
@@ -25,7 +45,7 @@ function StakingInformation() {
                 <h1 className="">{amoutERC20}</h1>
               </div>
               <div className="flex gap-4 mt-3">
-                <h1 className="basis-32 ">Lock time</h1>
+                <h1 className="basis-32 ">Time Deposit</h1>
                 <h1 className="basis-2/3 ">22/33/2024</h1>
               </div>
             </div>
@@ -33,15 +53,15 @@ function StakingInformation() {
             <div className="flex flex-col  rounded-md h-auto p-4 bg-gray-400">
               <div className="flex gap-4 ">
                 <h1 className="basis-32 ">APR</h1>
-                <h1 className="basis-2/3 ">8%</h1>
+                <h1 className="basis-2/3 ">{baseAPR} %</h1>
               </div>
               <div className="flex gap-4   mt-2">
                 <h1 className="basis-32 ">APR bonus</h1>
-                <h1 className="basis-2/3 ">2%</h1>
+                <h1 className="basis-2/3 ">{aprBonus} %</h1>
               </div>
               <div className="flex gap-4  mt-2">
                 <h1 className="basis-32 ">Reward</h1>
-                <h1 className="basis-2/3 ">3000</h1>
+                <h1 className="basis-2/3 ">{rewards} token A</h1>
               </div>
             </div>
             <div className="flex flex-col  rounded-lg h-auto p-4  mt-1">
