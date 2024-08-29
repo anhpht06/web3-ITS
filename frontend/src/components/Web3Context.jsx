@@ -37,6 +37,8 @@ export function Web3Provider({ children }) {
 
             localStorage.setItem("isMetaMaskConnected", true);
             toast.success("Connect to MetaMask successfully");
+            
+
           }
         }
       } catch (error) {

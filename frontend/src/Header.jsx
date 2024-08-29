@@ -40,7 +40,7 @@ function Header() {
               <img className="h-6" src={iconUser} alt="icon user" />
             </button>
 
-            <div className="absolute right-0  w-48  origin-top-right rounded-md shadow-lg bg-gray-700 ring-1 ring-black ring-opacity-5 hidden group-hover:block">
+            <div className="absolute right-0 z-10  w-48  origin-top-right rounded-md shadow-lg bg-gray-700 ring-1 ring-black ring-opacity-5 hidden group-hover:block">
               <div className="py-1 ">
                 <Link
                   to={"/admin"}

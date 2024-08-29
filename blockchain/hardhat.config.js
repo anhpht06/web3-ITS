@@ -1,5 +1,6 @@
 require("@nomicfoundation/hardhat-toolbox");
 
+require("dotenv").config();
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: {
@@ -7,9 +8,9 @@ module.exports = {
       {
         version: "0.8.20",
         settings: {
-          evmVersion: "paris"
-        }
-      }
+          evmVersion: "paris",
+        },
+      },
     ],
     settings: {
       optimizer: {
@@ -18,4 +19,5 @@ module.exports = {
       },
     },
   },
+  
 };
