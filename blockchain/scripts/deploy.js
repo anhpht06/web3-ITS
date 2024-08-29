@@ -26,12 +26,10 @@ async function main() {
   console.log("TokenERC721 address:", await tokenERC721.getAddress());
   console.log("ContractHandle address:", await contractHandle.getAddress());
 
-  deploying(
-    await contractHandle.getAddress()
-  );
+  saveContractInfo(await contractHandle.getAddress());
 }
 
-function deploying(contractHandle) {
+function saveContractInfo(contractHandle) {
   const fs = require("fs");
   const contractsDir = path.join(
     __dirname,
@@ -42,6 +40,9 @@ function deploying(contractHandle) {
     "contracts"
   );
 
+  if (!fs.existsSync(contractsDir)) {
+    fs.mkdirSync(contractsDir, { recursive: true });
+  }
   fs.writeFileSync(
     path.join(contractsDir, "contract-address.json"),
     JSON.stringify(
@@ -52,6 +53,7 @@ function deploying(contractHandle) {
       2
     )
   );
+
   const contractList = [{ name: "ContractHandle" }];
   contractList.forEach((contract) => {
     const artifact = artifacts.readArtifactSync(contract.name);
