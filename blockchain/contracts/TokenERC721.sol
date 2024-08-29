@@ -7,9 +7,11 @@ contract TokenERC721 is ERC721 {
     uint256 public nextTokenId;
     constructor() ERC721("NFT-B", "ERC721") {}
 
-    function mint(address to) external {
-        uint256 _tokenId = nextTokenId;
+    function mint(address to) external returns (uint256 _tokenId) {
+        _tokenId = nextTokenId;
         _mint(to, _tokenId);
         nextTokenId += 1;
+
+        return _tokenId;
     }
 }
