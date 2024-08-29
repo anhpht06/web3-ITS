@@ -12,7 +12,6 @@ function StakingInformation() {
           staking information
         </h1>
         <hr className="border-gray-400 mt-2" />
-
         <div className="flex flex-col p-2 mt-2">
           <div className="flex flex-col border-2 shadow-lg rounded-lg h-auto bg-gray-200 font-bold">
             <div className="flex flex-col p-4 ">
@@ -47,10 +46,10 @@ function StakingInformation() {
             </div>
             <div className="flex flex-col  rounded-lg h-auto p-4  mt-1">
               <div className="flex gap-4">
-                <button className="basis-1/2 bg-blue-500 py-2 rounded-lg text-white font-bold ">
+                <button className="basis-1/2 bg-blue-500 hover:bg-blue-700  py-2 rounded-lg text-white font-bold ">
                   Reward
                 </button>
-                <button className="basis-1/2 bg-blue-500 py-2 rounded-lg text-white">
+                <button className="basis-1/2 bg-blue-500 hover:bg-blue-700  py-2 rounded-lg text-white">
                   Claim reward
                 </button>
               </div>
