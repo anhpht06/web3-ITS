@@ -6,8 +6,8 @@ import "./TokenERC20.sol";
 import "./TokenERC721.sol";
 
 contract ContractHandle is ReentrancyGuard {
-    TokenERC20 private tokenERC20; //token A
-    TokenERC721 private tokenERC721; //NFT-B
+    TokenERC20 public tokenERC20; //token A
+    TokenERC721 public tokenERC721; //NFT-B
 
     event getData(uint256 data, address _from, address _to);
 
@@ -39,6 +39,7 @@ contract ContractHandle is ReentrancyGuard {
         tokenERC20 = _tokenERC20;
         tokenERC721 = _tokenERC721;
     }
+
     //Đã test
     function faucetERC20(uint256 _amount) external {
         require(_amount > 0, "TokenA: faucet amount must be greater than zero");
@@ -204,9 +205,7 @@ contract ContractHandle is ReentrancyGuard {
                 }
             }
 
-            if (!found) {
-
-            }
+            if (!found) {}
         }
 
         // Cập nhật tổng số lượng NFT
@@ -215,5 +214,19 @@ contract ContractHandle is ReentrancyGuard {
         useStakingInfo.totalRewardERC20 = calculateRewardERC20();
         useStakingInfo.APR -= bonusAPR * tokenId.length;
         useStakingInfo.startTimeDeposit = 0;
+    }
+
+    //get balance of ERC20 and ERC721
+    function balaceOfERC20(address _address) public view returns (uint256) {
+        return tokenERC20.balanceOf(_address);
+    }
+    function balaceOfERC20TotalSupply() public view returns (uint256) {
+        return tokenERC20.balanceOfTokenERC20();
+    }
+    function balaceOfERC721(address _address) public view returns (uint256) {
+        return tokenERC721.balanceOf(_address);
+    }
+    function balaceOfERC721TotalSupply() public view returns (uint256) {
+        return tokenERC721.balanceOfTokenERC721();
     }
 }

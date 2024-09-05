@@ -6,8 +6,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./TokenERC721.sol";
 contract TokenERC20 is ERC20 {
     // address public account;
-    uint256 public constant TOTAL_SUPPLY = 1000000000 * 10 ** 18;
-    uint256 public TOTAL_faucet_MAX = 10000000 * 10 ** 18;
+    uint256 public constant TOTAL_SUPPLY = 1_000_000_000 * 10 ** 18;
+    uint256 public TOTAL_faucet_MAX = 10_000_000 * 10 ** 18;
 
     using Strings for uint256;
 
@@ -30,5 +30,8 @@ contract TokenERC20 is ERC20 {
             "ERC20Token: insufficient balance in contract"
         );
         _transfer(address(this), _to, _amount);
+    }
+    function balanceOfTokenERC20() public view returns (uint256) {
+        return balanceOf(address(this));
     }
 }
