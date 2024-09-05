@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext } from "react";
+
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { ethers } from "ethers";
@@ -16,6 +17,7 @@ export function Web3Provider({ children }) {
   const [contractHandleProvider, setContractHandleProvider] = useState(null);
   const [contractHandleSigner, setContractHandleSigner] = useState(null);
 
+  const [baseAPR, setBaseAPR] = useState(0);
   const connectMetaMask = async () => {
     console.log("connectMetaMask: ");
 
@@ -40,12 +42,21 @@ export function Web3Provider({ children }) {
         contractHandler.abi,
         provider
       );
+
       const signer = provider.getSigner();
-      const contractHandleSigner = contractHandleProvider.connect(signer);
+      const contractHandleSigner = new ethers.Contract(
+        contractHandlerAddress,
+        contractHandler.abi,
+        signer
+      );
+
       const address = await signer.getAddress();
       const accounts = await provider.listAccounts();
 
-      setAccounts(accounts[0]);
+      const apr = await contractHandleProvider.baseAPR();
+      setBaseAPR(apr.toString() / 100);
+
+      setAccounts(accounts);
       setAddress(address);
       setProvider(provider);
       setSigner(signer);
@@ -136,6 +147,9 @@ export function Web3Provider({ children }) {
         accounts,
         contractHandleProvider,
         contractHandleSigner,
+        baseAPR,
+        ethers,
+        contractHandlerAddress,
       }}
     >
       {children}

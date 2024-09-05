@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import Home from "./components/home";
+import Home from "./components/Home";
 import Admin from "./components/Admin";
 import Header from "./Header";
 import { Web3Provider } from "./components/Web3Context";

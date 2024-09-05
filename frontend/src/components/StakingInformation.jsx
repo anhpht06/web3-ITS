@@ -2,29 +2,35 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import IconTokenERC20 from "../assets/tokenERC20.svg";
-import { id } from "ethers/lib/utils";
 function StakingInformation({
   provider,
   signer,
   address,
+  ethers,
   contractHandleProvider,
   contractHandleSigner,
+  tokenAIsStaked,
+  NFTIsStaked,
+  balanceOfTokenAAccount,
 }) {
-  const [amoutERC20, setAmoutERC20] = useState(0);
   const [baseAPR, setBaseAPR] = useState(0);
   const [aprBonus, setAprBonus] = useState(0);
   const [rewards, setRewards] = useState(0);
+  const [timeDeposit, setTimeDeposit] = useState("");
+  const [amoutTokenADeposit, setAmoutTokenADeposit] = useState(0);
+  const depositTokenA = async () => {
+    console.log("amout:::", Number(amoutTokenADeposit));
+  };
 
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const apr = await contractHandleProvider.baseAPR();
-        setBaseAPR(apr.toString() / 100);
-      } catch (error) {}
-    };
-    fetch();
-  }, [address]);
-
+    try {
+      if (amoutTokenADeposit <= 0) {
+        setAmoutTokenADeposit(0);
+      } else if (amoutTokenADeposit > Number(balanceOfTokenAAccount)) {
+        setAmoutTokenADeposit(Number(balanceOfTokenAAccount));
+      }
+    } catch (error) {}
+  }, [amoutTokenADeposit, balanceOfTokenAAccount]);
   return (
     <div className="basis-2/3 h-full bg-white m-1 rounded-lg shadow-xl">
       <div className="flex flex-col p-2">
@@ -35,14 +41,14 @@ function StakingInformation({
         <div className="flex flex-col p-2 mt-2">
           <div className="flex flex-col border-2 shadow-lg rounded-lg h-auto bg-gray-200 font-bold">
             <div className="flex flex-col p-4 ">
-              <h1 className="text-xl font-bold">TokenERC20 Staked</h1>
-              <div className="flex gap-4 mt-2 ">
+              <h1 className="text-2xl font-bold">Token A Staked</h1>
+              <div className="flex gap-4 mt-2 items-center">
                 <img
                   src={IconTokenERC20}
                   alt="tonken ERC20"
                   className="w-6 h-6 "
                 />
-                <h1 className="">{amoutERC20}</h1>
+                <h1 className="text-xl">{tokenAIsStaked}</h1>
               </div>
               <div className="flex gap-4 mt-3">
                 <h1 className="basis-32 ">Time Deposit</h1>
@@ -74,13 +80,29 @@ function StakingInformation({
                 </button>
               </div>
               <div className="flex gap-4 mt-4 ">
-                <button className="bg-blue-500 hover:bg-blue-700  rounded-lg py-1 px-2 text-white">
-                  Deposit token A
-                </button>
+                {amoutTokenADeposit > 0 ? (
+                  <button
+                    type="button"
+                    className="bg-blue-500 hover:bg-blue-700  rounded-lg py-1 px-2 text-white"
+                    onClick={depositTokenA}
+                  >
+                    Deposit token A
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className="bg-gray-500   rounded-lg py-1 px-2 text-white"
+                    // onClick={depositTokenA}
+                  >
+                    Deposit token A
+                  </button>
+                )}
                 <input
                   className="border-2 rounded-lg px-2"
                   type="number"
                   placeholder="0"
+                  value={amoutTokenADeposit || ""}
+                  onChange={(e) => setAmoutTokenADeposit(e.target.value)}
                 />
               </div>
             </div>
@@ -89,9 +111,9 @@ function StakingInformation({
           <div className="flex flex-col border-2 shadow-lg rounded-lg h-auto bg-gray-200 font-bold mt-6">
             <div className="flex flex-col  ">
               <div className="flex flex-col p-4 ">
-                <h1 className="text-xl font-bold">NFTB Staked</h1>
-                <div className="flex gap-4 mt-2 ">
-                  <h1 className="">{amoutERC20}</h1>
+                <h1 className="text-2xl font-bold">NFT B Staked</h1>
+                <div className="flex gap-2 mt-2 text-xl">
+                  <h1 className="">{NFTIsStaked}</h1>
                   <h1>NFT-B</h1>
                 </div>
               </div>
