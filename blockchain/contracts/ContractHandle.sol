@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./TokenERC20.sol";
 import "./TokenERC721.sol";
 
-contract ContractHandle is TokenERC20, ReentrancyGuard {
+contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
     TokenERC20 public tokenERC20; //token A
     TokenERC721 public tokenERC721; //NFT-B
 
@@ -24,6 +26,7 @@ contract ContractHandle is TokenERC20, ReentrancyGuard {
     struct StakingInfo {
         uint256 totalAmountERC20;
         uint256 APR;
+        uint256 bonusAPR;
         uint256 startTimeDeposit;
         uint256 totalRewardERC20;
         uint256 mintNFTbCount;
@@ -34,14 +37,14 @@ contract ContractHandle is TokenERC20, ReentrancyGuard {
         uint256 bonusAPR;
         uint256[] tokenId;
     }
-    constructor(TokenERC20 _tokenERC20, TokenERC721 _tokenERC721) {
+    constructor(
+        TokenERC20 _tokenERC20,
+        TokenERC721 _tokenERC721
+    ) Ownable(msg.sender) {
         tokenERC20 = _tokenERC20;
         tokenERC721 = _tokenERC721;
     }
 
-    function setAPR() external {
-            stakingInfo[msg.sender].APR = baseAPR + stakingInfoNFTB[msg.sender].bonusAPR;
-    }
     function faucetERC20(uint256 _amount) external {
         require(_amount > 0, "TokenA: faucet amount must be greater than zero");
         tokenERC20.faucet(msg.sender, _amount);
@@ -78,6 +81,7 @@ contract ContractHandle is TokenERC20, ReentrancyGuard {
     }
     function calculateRewardERC20() public view returns (uint256) {
         StakingInfo storage useStakingInfo = stakingInfo[msg.sender];
+
         uint256 balance = useStakingInfo.totalAmountERC20;
         if (balance == 0) {
             return 0;
@@ -90,8 +94,13 @@ contract ContractHandle is TokenERC20, ReentrancyGuard {
         }
 
         uint256 timeElapsed = block.timestamp - startTimedeposit;
-        uint256 reward = ((balance * useStakingInfo.APR) / 10000) *
-            (timeElapsed / 365 days); //lãi 8% trong 1 năm
+        uint256 reward = Math.mulDiv(
+            balance * (baseAPR + useStakingInfo.bonusAPR),
+            timeElapsed,
+            365 days * 10000
+        );
+        // uint256 reward = ((balance * (baseAPR + useStakingInfo.bonusAPR)) /
+        //     10000) * (timeElapsed / 365 days); //lãi 8% trong 1 năm
 
         return reward;
     }
@@ -151,7 +160,7 @@ contract ContractHandle is TokenERC20, ReentrancyGuard {
         useStakingInfo.totalRewardERC20 = calculateRewardERC20();
         useStakingInfo.startTimeDeposit = block.timestamp;
         uint256 _bonusAPR = bonusAPR * tokenId.length;
-        useStakingInfo.APR += _bonusAPR;
+        // useStakingInfo.APR += _bonusAPR;
         useStakingInfoNFTB.bonusAPR += _bonusAPR;
 
         useStakingInfoNFTB.totalAmountERC721 += tokenId.length;
@@ -202,8 +211,26 @@ contract ContractHandle is TokenERC20, ReentrancyGuard {
         useStakingInfo.totalRewardERC20 = calculateRewardERC20();
         useStakingInfo.startTimeDeposit = 0;
         uint256 _bonusAPR = bonusAPR * tokenId.length;
-        useStakingInfo.APR -= _bonusAPR;
+        // useStakingInfo.APR -= _bonusAPR;
         useStakingInfoNFTB.bonusAPR -= _bonusAPR;
+    }
+
+    function getCurrentAPR() public view returns (uint256) {
+        StakingInfoNFTB storage useStrakingInfoNFTB = stakingInfoNFTB[
+            msg.sender
+        ];
+        if (useStrakingInfoNFTB.bonusAPR == 0) {
+            return baseAPR;
+        } else {
+            return baseAPR + useStrakingInfoNFTB.bonusAPR;
+        }
+    }
+    function updateAPR(uint256 newBaseAPR) external onlyOwner {
+        baseAPR = newBaseAPR;
+    }
+    function getCurrentRewardERC20() public view returns (uint256) {
+        return
+            stakingInfo[msg.sender].totalRewardERC20 + calculateRewardERC20();
     }
     //get balance of ERC20 and ERC721
     function balaceOfERC20(address _address) public view returns (uint256) {
@@ -217,13 +244,5 @@ contract ContractHandle is TokenERC20, ReentrancyGuard {
     }
     function balaceOfERC721TotalSupply() public view returns (uint256) {
         return tokenERC721.balanceOfTokenERC721();
-    }
-    //change Base APR
-    function changeBaseAPR(uint256 _APR) external {
-        uint256 newAPR = _APR * 100;
-        StakingInfo storage useStakingInfo = stakingInfo[msg.sender];
-        StakingInfoNFTB storage useStakingInfoNFTB = stakingInfoNFTB[
-            msg.sender
-        ];
     }
 }

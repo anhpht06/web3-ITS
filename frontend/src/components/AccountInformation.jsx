@@ -2,6 +2,7 @@ import React from "react";
 import logoBNC from "../assets/logo-BNC.svg";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { convertData, convertNumber } from "../convert/convertData";
 import numeral from "numeral";
 
 function AccountInformation({
@@ -19,18 +20,31 @@ function AccountInformation({
 }) {
   const [balanceOfTokenAAccountFormatted, setBalanceOfTokenAAccountFormatted] =
     useState(balanceOfTokenAAccount);
+  // const [balanceNFTBAccountFormatted, setBalanceNFTBAccountFormatted] =
+  //   useState(balanceNFTBAccount);
   const [loading, setLoading] = useState(false);
   const [nftBAmount, setNftBAmount] = useState(0);
 
+  const [totalSupply, setTotalSupply] = useState(0);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const totalSupply = await ethers.utils.formatEther(
+        await contractHandleProvider.balaceOfERC20TotalSupply()
+      );
+      const formattedNumberTotalSupply = numeral(totalSupply.toString()).format(
+        "0,0.00"
+      );
+      setTotalSupply(formattedNumberTotalSupply);
+    };
+    fetch();
+  }, []);
   useEffect(() => {
     const fetch = async () => {
       try {
-        const formattedNumber = numeral(balanceOfTokenAAccount).format(
-          "0,0.00"
+        setBalanceOfTokenAAccountFormatted(
+          convertNumber(balanceOfTokenAAccount)
         );
-
-        setBalanceOfTokenAAccountFormatted(formattedNumber);
-        console.log("object::", formattedNumber);
       } catch (error) {}
     };
     fetch();
@@ -68,14 +82,14 @@ function AccountInformation({
           <img src={logoBNC} alt="logo BNC" className="w-8 h-8" />
           <h1 className="font-bold">{address}</h1>
         </div>
-        {totalSupplyTokenA ? (
+        {totalSupply ? (
           <div className="text-right">
-            <h1 className="">Token A left: {totalSupplyTokenA}</h1>
+            <h1 className="">Token A left: {totalSupply}</h1>
           </div>
         ) : (
           <div className="animate-pulse  flex flex-row-reverse">
             <div className="px-1 py-1 bg-slate-400 rounded-lg">
-              <h1 className="">Token A left:</h1>
+              <h1 className="">Loading...</h1>
             </div>
           </div>
         )}
@@ -84,7 +98,7 @@ function AccountInformation({
           <div className="flex gap-2 mt-1 bg-slate-400 px-1 py-1 rounded-lg items-center">
             <h1 className="font-bold">Token A :</h1>
             <h1 className="text-xl font-bold">
-              {balanceOfTokenAAccountFormatted}
+              {convertNumber(balanceOfTokenAAccount)}
             </h1>
           </div>
         ) : (
