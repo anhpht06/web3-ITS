@@ -14,6 +14,10 @@ contract TokenERC721 is ERC721 {
 
         return _tokenId;
     }
+
+    function getNFTB() public view{
+        
+    }
     function balanceOfTokenERC721() public view returns (uint256) {
         return balanceOf(address(this));
     }

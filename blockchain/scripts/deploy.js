@@ -7,6 +7,8 @@ async function main() {
     await deployer.getAddress()
   );
 
+  const adminAddress = await deployer.getAddress();
+
   const TokenERC20 = await ethers.getContractFactory("TokenERC20");
   const tokenERC20 = await TokenERC20.deploy();
   await tokenERC20.waitForDeployment();
@@ -26,10 +28,14 @@ async function main() {
   console.log("TokenERC721 address:", await tokenERC721.getAddress());
   console.log("ContractHandle address:", await contractHandle.getAddress());
 
-  saveContractInfo(await contractHandle.getAddress());
+  saveContractInfo(
+    await contractHandle.getAddress(),
+    await tokenERC20.getAddress(),
+    await tokenERC721.getAddress()
+  );
 }
 
-function saveContractInfo(contractHandle) {
+function saveContractInfo(contractHandle, tokenERC20, tokenERC721) {
   const fs = require("fs");
   const contractsDir = path.join(
     __dirname,
@@ -48,13 +54,19 @@ function saveContractInfo(contractHandle) {
     JSON.stringify(
       {
         contractHandle: contractHandle,
+        tokenERC20: tokenERC20,
+        tokenERC721: tokenERC721,
       },
       undefined,
       2
     )
   );
 
-  const contractList = [{ name: "ContractHandle" }];
+  const contractList = [
+    { name: "ContractHandle" },
+    { name: "TokenERC20" },
+    { name: "TokenERC721" },
+  ];
   contractList.forEach((contract) => {
     const artifact = artifacts.readArtifactSync(contract.name);
     fs.writeFileSync(
