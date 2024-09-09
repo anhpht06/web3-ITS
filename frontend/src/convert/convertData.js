@@ -1,6 +1,6 @@
 import numeral from "numeral";
 
-export function convertData(time) {
+export function convertDate(time) {
   if (!time) return 0;
   const date = new Date(time);
   const formattedDate = date.toLocaleString("vi-VN", {
