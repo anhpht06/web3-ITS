@@ -51,7 +51,6 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
     }
     function depositERC20(uint256 _amount) external nonReentrant {
         StakingInfo storage useStakingInfo = stakingInfo[msg.sender];
-
         require(
             _amount > 0,
             "TokenA: deposit amount must be greater than zero"
@@ -63,12 +62,12 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
         tokenERC20.transferFrom(msg.sender, address(this), _amount);
         useStakingInfo.totalAmountERC20 += _amount;
 
-        if (useStakingInfo.startTimeDeposit == 0) {
-            useStakingInfo.startTimeDeposit = block.timestamp;
-        } else {
-            useStakingInfo.totalRewardERC20 = calculateRewardERC20();
-            useStakingInfo.startTimeDeposit = block.timestamp;
+        if (useStakingInfo.startTimeDeposit != 0) {
+            uint256 pendingReward = calculateRewardERC20();
+            useStakingInfo.totalRewardERC20 += pendingReward;
         }
+
+        useStakingInfo.startTimeDeposit = block.timestamp;
 
         //mint NFTB nếu deposit 1.000.000 token A
         uint256 depositCount = (useStakingInfo.totalAmountERC20 /
@@ -88,7 +87,6 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
         }
 
         uint256 startTimedeposit = useStakingInfo.startTimeDeposit;
-
         if (startTimedeposit == 0) {
             return 0;
         }
@@ -97,11 +95,10 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
         uint256 reward = Math.mulDiv(
             balance * (baseAPR + useStakingInfo.bonusAPR),
             timeElapsed,
-            365 days * 10000
+            365.25 days * 10000
         );
         // uint256 reward = ((balance * (baseAPR + useStakingInfo.bonusAPR)) /
-        //     10000) * (timeElapsed / 365 days); //lãi 8% trong 1 năm
-
+        //     10000) * (timeElapsed / 30 seconds); //lãi 8% trong 1 năm
         return reward;
     }
     function withdrawRewardERC20() external {
@@ -157,7 +154,7 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
             useStakingInfoNFTB.tokenId.push(tokenId[i]);
         }
 
-        useStakingInfo.totalRewardERC20 = calculateRewardERC20();
+        useStakingInfo.totalRewardERC20 += calculateRewardERC20();
         useStakingInfo.startTimeDeposit = block.timestamp;
         uint256 _bonusAPR = bonusAPR * tokenId.length;
         // useStakingInfo.APR += _bonusAPR;
@@ -229,8 +226,9 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
         baseAPR = newBaseAPR;
     }
     function getCurrentRewardERC20() public view returns (uint256) {
-        return
-            stakingInfo[msg.sender].totalRewardERC20 + calculateRewardERC20();
+        uint256 reward = stakingInfo[msg.sender].totalRewardERC20 +
+            calculateRewardERC20();
+        return reward;
     }
     //get balance of ERC20 and ERC721
     function balaceOfERC20(address _address) public view returns (uint256) {
