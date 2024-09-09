@@ -103,11 +103,10 @@ export function Web3Provider({ children }) {
       const address = await signer.getAddress();
       const accounts = await provider.listAccounts();
 
-      const apr = await contractHandleProvider.baseAPR();
-      console.log("object:::", apr.toString());
-      setBaseAPR(apr.toString() / 100);
-
-      setAccounts(accounts);
+      // const apr = await contractHandleProvider.baseAPR();
+      // console.log("object:::", apr.toString());
+      // setBaseAPR(apr.toString() / 100);
+      // setAccounts(accounts);
       setAddress(address);
       setProvider(provider);
       setSigner(signer);
@@ -190,21 +189,21 @@ export function Web3Provider({ children }) {
       value={{
         connectMetaMask,
         disconnectMetaMask,
-        address,
-        provider,
-        signer,
-        accounts,
         contractHandleProvider,
         contractHandleSigner,
         tokenERC20ContractProvider,
         tokenERC20ContractSigner,
         tokenERC721ContractProvider,
         tokenERC721ContractSigner,
-        contractHandlerAddress,
-        tokenERC20Address,
-        tokenERC721Address,
-        baseAPR,
         ethers,
+        address,
+        signer,
+        contractHandlerAddress,
+        // provider,
+        // accounts,
+        // tokenERC20Address,
+        // tokenERC721Address,
+        // baseAPR,
       }}
     >
       {children}

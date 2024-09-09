@@ -10,7 +10,7 @@ createRoot(document.getElementById("root")).render(
     <App />
     <ToastContainer
       position="bottom-right"
-      autoClose={1000}
+      autoClose={3000}
       closeOnClick={true}
     />
   </div>
