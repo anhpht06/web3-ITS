@@ -13,17 +13,12 @@ function StakingInformation({
   contractHandlerAddress,
   onReload,
   reloadData,
-  // provider,
-  // address,
-  // NFTIsStaked,
-  // balanceOfTokenAAccount,
-  // baseAPR,
 }) {
   const [amountTokenADeposit, setAmountTokenADeposit] = useState(0);
-  const [formatAmountTokenADeposit, setFormatAmountTokenADeposit] = useState(0);
   const [checkLoadData, setCheckLoadData] = useState(false);
   const [loadingDeposit, setLoadingDeposit] = useState(false);
   const [loadingClaimReward, setLoadingClaimReward] = useState(false);
+  const [loadingWithdraw, setLoadingWithdraw] = useState(false);
   const [timeReload, setTimeReload] = useState(false);
 
   const [balanceOfTokenAAccount, setBalanceOfTokenAAccount] = useState(0);
@@ -34,6 +29,8 @@ function StakingInformation({
   const [APR, setAPR] = useState(0);
   const [bonusAPR, setBonusAPR] = useState(0);
   const [rewardTokenADeposit, setRewardTokenADeposit] = useState(0);
+  const [lockTime, setLockTime] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
 
   const fetchData = async () => {
     setRewardTokenADeposit(0);
@@ -53,7 +50,8 @@ function StakingInformation({
         convertNumber(ethers.utils.formatEther(stakingInfo?.totalAmountERC20))
       );
       //set time deposit
-      setTimeDeposit(stakingInfo?.startTimeDeposit.toString());
+      const timeDeposit = stakingInfo?.startTimeDeposit.toString();
+      setTimeDeposit(timeDeposit);
 
       //set APR
       const _apr =
@@ -70,6 +68,12 @@ function StakingInformation({
       setAmountTokenADeposit(0);
       //set reward token A deposit
       setRewardTokenADeposit(convertNumber(await getReward()));
+      //set lock time
+      const lock = await contractHandleProvider.lockTime();
+      setLockTime(Number(lock.toString()));
+      //set time left
+      const _timeLeft = getTimeLockLeft(timeDeposit, Number(lock.toString()));
+      setTimeLeft(_timeLeft);
     } catch (error) {
       console.error("fetchData StakingInformation", error);
     }
@@ -93,13 +97,30 @@ function StakingInformation({
       if (amountTokenADeposit <= 0) {
         setAmountTokenADeposit(0);
       } else if (amountTokenADeposit > balanceOfTokenAAccount) {
-        setAmountTokenADeposit(balanceOfTokenAAccount);
+        setAmountTokenADeposit(Math.floor(balanceOfTokenAAccount));
       }
     } catch (error) {
       console.error(error);
     }
   }, [amountTokenADeposit, checkLoadData]);
 
+  //check time lock withdraw
+  useEffect(() => {
+    if (!checkLoadData) {
+      return;
+    }
+    const interval = setInterval(() => {
+      setTimeLeft((prevTime) => {
+        if (prevTime <= 0) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prevTime - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [checkLoadData]);
   // 5s sẽ hiển thị lãi
   const getReward = async () => {
     const getReward = await contractHandleSigner.getCurrentRewardERC20();
@@ -128,34 +149,38 @@ function StakingInformation({
     return () => clearInterval(interval);
   }, [checkLoadData, rewardTokenADeposit]);
   const depositTokenA = async () => {
-    const amout = await ethers.utils
+    const amount = ethers.utils
       .parseEther(amountTokenADeposit.toString())
       .toString();
-    const deposit = async () => {
-      try {
-        setLoadingDeposit(true);
-        const approve = await tokenERC20ContractSigner.approve(
-          contractHandlerAddress,
-          amout
-        );
-        await approve.wait();
-        const depo = await contractHandleSigner.depositERC20(amout);
-        await depo.wait();
-      } catch (error) {
-        console.error("Error in depositTokenA:", error.message || error);
-        throw error;
-      } finally {
-        setLoadingDeposit(false);
-        onReload();
-      }
-    };
 
-    toast.promise(deposit(), {
-      pending: "Depositing...",
-      success: "Deposit success",
-      error: "Deposit error",
-    });
+    setLoadingDeposit(true);
+    try {
+      toast.promise(
+        (async () => {
+          const approve = await tokenERC20ContractSigner.approve(
+            contractHandlerAddress,
+            amount
+          );
+          await approve.wait();
+
+          const deposit = await contractHandleSigner.depositERC20(amount);
+          await deposit.wait();
+
+          onReload();
+        })(),
+        {
+          pending: "Depositing...",
+          success: "Deposit success",
+          error: "Deposit error",
+        }
+      );
+    } catch (error) {
+      console.error("Error in depositTokenA:", error.message || error);
+    } finally {
+      setLoadingDeposit(false);
+    }
   };
+
   const claimReward = async () => {
     setLoadingClaimReward(true);
 
@@ -185,8 +210,35 @@ function StakingInformation({
       setLoadingClaimReward(false);
     }
   };
-
-
+  const withdrawTokenA = async () => {
+    setLoadingWithdraw(true);
+    try {
+      toast.promise(
+        contractHandleSigner.withdrawRewardERC20().then(async (tx) => {
+          await tx.wait();
+          onReload();
+        }),
+        {
+          pending: "Withdrawing...",
+          success: "Withdraw success",
+          error: "Withdraw error",
+        }
+      );
+    } catch (error) {
+      console.error("Error in withdrawTokenA:", error.message || error);
+    } finally {
+      setLoadingWithdraw(false);
+    }
+  };
+  const getTimeLockLeft = (timeDeposit, lockTime) => {
+    const timeLock = Number(timeDeposit) + Number(lockTime); // Tổng thời gian khóa
+    const timeNow = Math.floor(Date.now() / 1000); // Thời gian hiện tại tính bằng giây
+    const timeLeft = timeLock - timeNow; // Tính thời gian còn lại
+    if (timeLeft > 0) {
+      return timeLeft;
+    }
+    return 0;
+  };
   return (
     <div className="basis-2/3 h-full bg-white m-1 rounded-lg shadow-xl">
       <div className="flex flex-col p-2">
@@ -236,7 +288,6 @@ function StakingInformation({
                 </div>
               )}
             </div>
-
             <div className="flex flex-col  rounded-md h-auto p-4 bg-gray-400">
               {APR ? (
                 <div className="flex gap-4 ">
@@ -280,12 +331,37 @@ function StakingInformation({
             </div>
             <div className="flex flex-col  rounded-lg h-auto p-4  mt-1">
               <div className="flex gap-4">
-                <button
-                  className="basis-1/2 bg-blue-500 hover:bg-blue-700  py-2 rounded-lg text-white font-bold "
-                  // onClick={withdraw}
-                >
-                  Withdraw
-                </button>
+                {!loadingWithdraw ? (
+                  totalAmountTokenADeposit <= 0 ? (
+                    <button
+                      className="basis-1/2 bg-gray-500 py-2 rounded-lg text-white font-bold"
+                      disabled
+                    >
+                      Withdraw
+                    </button>
+                  ) : timeLeft > 0 ? (
+                    <button
+                      className="basis-1/2 bg-gray-500 py-2 rounded-lg text-white font-bold"
+                      disabled
+                    >
+                      Withdraw in {timeLeft}
+                    </button>
+                  ) : (
+                    <button
+                      className="basis-1/2 bg-blue-500 hover:bg-blue-700 py-2 rounded-lg text-white font-bold"
+                      onClick={withdrawTokenA}
+                    >
+                      Withdraw
+                    </button>
+                  )
+                ) : (
+                  <button
+                    className="basis-1/2 bg-gray-500 py-2 rounded-lg text-white"
+                    disabled
+                  >
+                    Withdraw
+                  </button>
+                )}
                 {!loadingClaimReward ? (
                   <button
                     className="basis-1/2 bg-blue-500 hover:bg-blue-700  py-2 rounded-lg text-white"

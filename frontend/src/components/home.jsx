@@ -11,16 +11,10 @@ function Home() {
     ethers,
     contractHandleProvider,
     contractHandleSigner,
-    tokenERC20ContractProvider,
     tokenERC20ContractSigner,
     tokenERC721ContractProvider,
     tokenERC721ContractSigner,
     contractHandlerAddress,
-    // address,
-    // provider,
-    // tokenERC20Address,
-    // tokenERC721Address,
-    // baseAPR,
   } = useWeb3Context();
 
   const [reload, setReload] = useState(false);
@@ -39,12 +33,6 @@ function Home() {
           onReload={handleReload}
           contractHandlerAddress={contractHandlerAddress}
           reloadData={reload}
-
-          // balanceOfTokenAAccount={balanceOfTokenAAccount}
-          // provider={provider}
-          // address={address}
-          // NFTIsStaked={NFTIsStaked}
-          // baseAPR={baseAPR}
         />
       ) : (
         <LoadingStakingInfo />

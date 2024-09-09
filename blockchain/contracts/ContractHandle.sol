@@ -105,7 +105,7 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
         StakingInfo storage useStakingInfo = stakingInfo[msg.sender];
 
         require(
-            (useStakingInfo.startTimeDeposit + lockTime) >= block.timestamp,
+            block.timestamp >= (useStakingInfo.startTimeDeposit + lockTime),
             "TokenA: You can't withdraw now"
         );
         uint256 reward = useStakingInfo.totalAmountERC20 +
@@ -174,7 +174,7 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
 
         require(useStakingInfoNFTB.totalAmountERC721 > 0, "NFT-B: No deposit");
         require(
-            (useStakingInfoNFTB.startTimeDeposit + lockTime) <= block.timestamp,
+            (useStakingInfoNFTB.startTimeDeposit + lockTime) >= block.timestamp,
             "NFT-B: You can't withdraw now"
         );
 
