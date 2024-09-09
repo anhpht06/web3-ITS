@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import IconTokenERC20 from "../assets/tokenERC20.svg";
 import { convertDate, convertNumber } from "../convert/convertData";
-
+import StakingNFTBInfomation from "./StakingNFTBInfomation";
 function StakingInformation({
   signer,
   ethers,
@@ -32,6 +32,7 @@ function StakingInformation({
   const [lockTime, setLockTime] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
 
+  //fetch data
   const fetchData = async () => {
     setRewardTokenADeposit(0);
     setTotalAmountTokenADeposit(0);
@@ -78,7 +79,7 @@ function StakingInformation({
       console.error("fetchData StakingInformation", error);
     }
   };
-
+  //check load data
   useEffect(() => {
     if (!(contractHandleProvider, signer)) {
       return;
@@ -88,7 +89,7 @@ function StakingInformation({
       setCheckLoadData(true);
     });
   }, [contractHandleProvider, signer, reloadData]);
-
+  //check amout token A deposit
   useEffect(() => {
     if (!checkLoadData) {
       return;
@@ -103,7 +104,6 @@ function StakingInformation({
       console.error(error);
     }
   }, [amountTokenADeposit, checkLoadData]);
-
   //check time lock withdraw
   useEffect(() => {
     if (!checkLoadData) {
@@ -122,10 +122,6 @@ function StakingInformation({
     return () => clearInterval(interval);
   }, [checkLoadData]);
   // 5s sẽ hiển thị lãi
-  const getReward = async () => {
-    const getReward = await contractHandleSigner.getCurrentRewardERC20();
-    return ethers.utils.formatEther(getReward);
-  };
   useEffect(() => {
     if (!checkLoadData) {
       return;
@@ -148,6 +144,7 @@ function StakingInformation({
     }, 5000);
     return () => clearInterval(interval);
   }, [checkLoadData, rewardTokenADeposit]);
+  //deposit token A
   const depositTokenA = async () => {
     const amount = ethers.utils
       .parseEther(amountTokenADeposit.toString())
@@ -180,7 +177,10 @@ function StakingInformation({
       setLoadingDeposit(false);
     }
   };
-
+  const getReward = async () => {
+    const getReward = await contractHandleSigner.getCurrentRewardERC20();
+    return ethers.utils.formatEther(getReward);
+  };
   const claimReward = async () => {
     setLoadingClaimReward(true);
 
@@ -239,6 +239,7 @@ function StakingInformation({
     }
     return 0;
   };
+
   return (
     <div className="basis-2/3 h-full bg-white m-1 rounded-lg shadow-xl">
       <div className="flex flex-col p-2">
@@ -418,30 +419,7 @@ function StakingInformation({
               </div>
             </div>
           </div>
-
-          <div className="flex flex-col border-2 shadow-lg rounded-lg h-auto bg-gray-200 font-bold mt-6">
-            <div className="flex flex-col  ">
-              <div className="flex flex-col p-4 ">
-                <h1 className="text-2xl font-bold">NFT B Staked</h1>
-                <div className="flex gap-2 mt-2 text-xl">
-                  <h1 className="">{}</h1>
-                  <h1>NFT-B</h1>
-                </div>
-              </div>
-              <div className="flex flex-col  rounded-lg h-auto p-3">
-                <div className="flex gap-4 ">
-                  <button className="bg-blue-500 hover:bg-blue-700  rounded-lg py-1 px-2 text-white">
-                    Deposit token B
-                  </button>
-                  <input
-                    className="border-2 rounded-lg px-2"
-                    type="number"
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          <StakingNFTBInfomation />
         </div>
       </div>
     </div>

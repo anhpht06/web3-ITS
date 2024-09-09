@@ -243,4 +243,28 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
     function balaceOfERC721TotalSupply() public view returns (uint256) {
         return tokenERC721.balanceOfTokenERC721();
     }
+    // // Get owned NFT-Bs
+    // function getOwnedNFTs(
+    //     address _adress
+    // ) external view returns (uint256[] memory) {
+    //     uint256 balance = tokenERC721.balanceOf(_adress);
+    //     uint256[] memory ownedNFTs = new uint256[](balance);
+    //     uint256 index = 0;
+    //     uint256 tokenId = 0;
+
+    //     while (index < balance) {
+    //         if (tokenERC721.ownerOf(tokenId) == _adress) {
+    //             ownedNFTs[index] = tokenId;
+    //             index++;
+    //         }
+    //         tokenId++;
+    //     }
+
+    //     return ownedNFTs;
+    // }
+    function getOwnedNFTs(
+        address _address
+    ) external view returns (uint256[] memory) {
+        return tokenERC721.getOwnedTokens(_address);
+    }
 }

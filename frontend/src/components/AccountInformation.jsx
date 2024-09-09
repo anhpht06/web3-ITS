@@ -4,6 +4,11 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { convertNumber } from "../convert/convertData";
 
+const nfts = [
+  { id: 1, name: "NFT 1" },
+  { id: 2, name: "NFT 2" },
+  { id: 3, name: "NFT 3" },
+];
 function AccountInformation({
   signer,
   ethers,
@@ -44,6 +49,9 @@ function AccountInformation({
       //get base APR
       const apr = await contractHandleProvider.baseAPR();
       setBaseAPR(apr.toString() / 100);
+      //check NFTB
+      const isNFTB = await contractHandleProvider.getOwnedNFTs(address);
+      console.log("test NFTB::::", isNFTB.toString());
     } catch (error) {
       console.error("fetchData AccountInformation", error);
     }
@@ -78,6 +86,18 @@ function AccountInformation({
     });
   };
 
+  //
+  const [showList, setShowList] = useState(false);
+  const [selectedNFT, setSelectedNFT] = useState(null);
+
+  const handleInputClick = () => {
+    setShowList(!showList);
+  };
+
+  const handleNFTClick = (nft) => {
+    setSelectedNFT(nft);
+    setShowList(false);
+  };
   return (
     <div className="flex-auto basis-1/3 h-full bg-white m-1 rounded-lg shadow-xl sticky top-5">
       <div className="flex flex-col p-2">
@@ -157,6 +177,34 @@ function AccountInformation({
             Faucet 5M Token A
           </button>
         )}
+
+        <div className="flex gap-4 mt-6 ">
+          <button className="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded ">
+            Deposit token B
+          </button>
+          <div className="relative">
+            <input
+              type="text"
+              readOnly
+              value={selectedNFT ? selectedNFT.name : "Select an NFT"}
+              onClick={handleInputClick}
+              className="p-2 border border-gray-300 rounded"
+            />
+            {showList && (
+              <div className="absolute mt-2 w-full border border-gray-500 bg-white rounded shadow-lg">
+                {nfts.map((nft) => (
+                  <div
+                    key={nft.id}
+                    onClick={() => handleNFTClick(nft)}
+                    className="p-2 cursor-pointer hover:bg-gray-100"
+                  >
+                    {nft.name}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
