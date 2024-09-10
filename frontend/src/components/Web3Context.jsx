@@ -32,8 +32,6 @@ export function Web3Provider({ children }) {
   const [tokenERC721ContractSigner, setTokenERC721ContractSigner] =
     useState(null);
 
-  const [baseAPR, setBaseAPR] = useState(0);
-
   const connectMetaMask = async () => {
     console.log("connectMetaMask: ");
 
@@ -199,10 +197,10 @@ export function Web3Provider({ children }) {
         address,
         signer,
         contractHandlerAddress,
+        tokenERC721Address,
         // provider,
         // accounts,
         // tokenERC20Address,
-        // tokenERC721Address,
         // baseAPR,
       }}
     >

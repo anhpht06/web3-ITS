@@ -4,18 +4,16 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { convertNumber } from "../convert/convertData";
 
-const nfts = [
-  { id: 1, name: "NFT 1" },
-  { id: 2, name: "NFT 2" },
-  { id: 3, name: "NFT 3" },
-];
 function AccountInformation({
   signer,
   ethers,
   contractHandleProvider,
   contractHandleSigner,
+  tokenERC721ContractSigner,
+  contractHandlerAddress,
   reloadData,
   onReload,
+  tokenERC721Address,
 }) {
   const [addressAccount, setAddressAccount] = useState("");
   const [totalSupplyTokenA, setTotalSupplyTokenA] = useState(0);
@@ -25,8 +23,20 @@ function AccountInformation({
 
   const [loading, setLoading] = useState(false);
   const [reload, setReload] = useState(false);
+  const [loadingDeposit, setLoadingDeposit] = useState(false);
+
+  const [listNFTB, setListNFTB] = useState([]);
+  const [showList, setShowList] = useState(false);
+  const [selectedNFTs, setSelectedNFTs] = useState([]);
 
   const fetchData = async () => {
+    setAddressAccount("");
+    setTotalSupplyTokenA(0);
+    setBalanceTokenAAccount(0);
+    setBalanceNFTBAccount(0);
+    setBaseAPR(0);
+    setShowList(false);
+    setSelectedNFTs([]);
     try {
       //get address account
       const address = await signer.getAddress();
@@ -51,7 +61,11 @@ function AccountInformation({
       setBaseAPR(apr.toString() / 100);
       //check NFTB
       const isNFTB = await contractHandleProvider.getOwnedNFTs(address);
-      console.log("test NFTB::::", isNFTB.toString());
+      setListNFTB(isNFTB);
+      //
+      const test = await contractHandleProvider.balaceOfERC721(
+        contractHandlerAddress
+      );
     } catch (error) {
       console.error("fetchData AccountInformation", error);
     }
@@ -70,13 +84,13 @@ function AccountInformation({
         const amount = ethers.utils.parseEther(amountFaucetERC20.toString());
         const faucet = await contractHandleSigner.faucetERC20(amount);
         await faucet.wait();
+        onReload();
       } catch (error) {
         console.error("Error in faucetTokenA:", error.message || error);
         throw error;
       } finally {
         setLoading(false);
         setReload(!reload);
-        onReload();
       }
     };
     toast.promise(faucet(), {
@@ -86,18 +100,64 @@ function AccountInformation({
     });
   };
 
-  //
-  const [showList, setShowList] = useState(false);
-  const [selectedNFT, setSelectedNFT] = useState(null);
-
-  const handleInputClick = () => {
+  const showDepositNFTB = async () => {
     setShowList(!showList);
+  };
+  const depositNFTB = async () => {
+    if (selectedNFTs.length === 0) {
+      console.error("No NFTs selected for deposit");
+      return;
+    }
+    setLoadingDeposit(true);
+    const depo = async () => {
+      try {
+        const approveTx = await tokenERC721ContractSigner.setApprovalForAll(
+          contractHandlerAddress,
+          true
+        );
+        await approveTx.wait();
+        const gasEstimate = await contractHandleSigner.estimateGas.depositNFTB(
+          selectedNFTs
+        );
+        const depositTx = await contractHandleSigner.depositNFTB(selectedNFTs, {
+          gasLimit: gasEstimate,
+        });
+        await depositTx.wait();
+        console.log("Deposit successful");
+
+        await depositTx.wait();
+        onReload();
+      } catch (error) {
+        console.error("Error in depositNFTB:", error.message || error);
+        throw error;
+      } finally {
+        setLoadingDeposit(false);
+      }
+    };
+    toast.promise(depo(), {
+      pending: "Depositing...",
+      success: "Deposit success",
+      error: "Deposit error",
+    });
+  };
+
+  const cancelDepositNFTB = async () => {
+    setShowList(!showList);
+    setSelectedNFTs([]);
   };
 
   const handleNFTClick = (nft) => {
-    setSelectedNFT(nft);
-    setShowList(false);
+    if (nft == null) return;
+
+    setSelectedNFTs((prevSelected) => {
+      if (prevSelected.includes(nft)) {
+        return prevSelected.filter((item) => item !== nft);
+      } else {
+        return [...prevSelected, nft];
+      }
+    });
   };
+
   return (
     <div className="flex-auto basis-1/3 h-full bg-white m-1 rounded-lg shadow-xl sticky top-5">
       <div className="flex flex-col p-2">
@@ -178,29 +238,86 @@ function AccountInformation({
           </button>
         )}
 
-        <div className="flex gap-4 mt-6 ">
-          <button className="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded ">
+        <div className="flex flex-row mt-2">
+          <button
+            className="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded basis-full "
+            onClick={() => showDepositNFTB()}
+          >
             Deposit token B
           </button>
           <div className="relative">
-            <input
-              type="text"
-              readOnly
-              value={selectedNFT ? selectedNFT.name : "Select an NFT"}
-              onClick={handleInputClick}
-              className="p-2 border border-gray-300 rounded"
-            />
             {showList && (
-              <div className="absolute mt-2 w-full border border-gray-500 bg-white rounded shadow-lg">
-                {nfts.map((nft) => (
-                  <div
-                    key={nft.id}
-                    onClick={() => handleNFTClick(nft)}
-                    className="p-2 cursor-pointer hover:bg-gray-100"
-                  >
-                    {nft.name}
+              <div className="w-full h-full top-0 left-0 flex justify-center items-center bg-[#24222270] fixed">
+                <div className="absolute mt-2 w-max border border-gray-500 bg-white rounded shadow-lg flex flex-col p-4">
+                  <h1 className="text-2xl font-bold">Danh sách NFT</h1>
+
+                  <div className="mt-4 flex gap-2 cursor-pointer">
+                    {listNFTB?.map((nft) => {
+                      const isSelected = selectedNFTs.includes(nft.toString());
+                      return (
+                        <div
+                          key={nft.toString()}
+                          className={`flex gap-4 border-2 rounded p-2 cursor-pointer ${
+                            isSelected ? "border-blue-500" : "border-gray-300"
+                          }`}
+                          onClick={() => handleNFTClick(nft.toString())}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            className="cursor-pointer"
+                            onChange={() => handleNFTClick()}
+                          />
+                          <label className="cursor-pointer">
+                            NFT #{nft.toString()}
+                          </label>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
+
+                  <div className="flex gap-2 mt-4">
+                    {selectedNFTs.length > 0 ? (
+                      !loadingDeposit ? (
+                        <button
+                          className="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded"
+                          onClick={depositNFTB}
+                        >
+                          Submit
+                        </button>
+                      ) : (
+                        <button
+                          className="bg-gray-500  text-white font-bold py-2 px-4 rounded"
+                          disabled
+                        >
+                          Submit
+                        </button>
+                      )
+                    ) : (
+                      <button
+                        className="bg-gray-500 text-white font-bold py-2 px-4 rounded"
+                        disabled
+                      >
+                        Submit
+                      </button>
+                    )}
+                    {!loadingDeposit ? (
+                      <button
+                        className="bg-red-700 hover:bg-red-500 text-white font-bold py-2 px-4 rounded"
+                        onClick={cancelDepositNFTB}
+                      >
+                        Cancel
+                      </button>
+                    ) : (
+                      <button
+                        disabled
+                        className="bg-gray-500  text-white font-bold py-2 px-4 rounded"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>

@@ -15,6 +15,7 @@ function Home() {
     tokenERC721ContractProvider,
     tokenERC721ContractSigner,
     contractHandlerAddress,
+    tokenERC721Address,
   } = useWeb3Context();
 
   const [reload, setReload] = useState(false);
@@ -42,9 +43,12 @@ function Home() {
           signer={signer}
           contractHandleProvider={contractHandleProvider}
           contractHandleSigner={contractHandleSigner}
+          tokenERC721ContractSigner={tokenERC721ContractSigner}
+          contractHandlerAddress={contractHandlerAddress}
           ethers={ethers}
           onReload={handleReload}
           reloadData={reload}
+          tokenERC721Address={tokenERC721Address}
         />
       ) : (
         <LoadingAccoutInfo />

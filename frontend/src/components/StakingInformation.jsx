@@ -56,7 +56,9 @@ function StakingInformation({
 
       //set APR
       const _apr =
-        (await contractHandleProvider.getCurrentAPR()).toString() / 100;
+        Number((await contractHandleProvider.baseAPR()).toString() / 100) +
+        Number(stakingInfo?.bonusAPR.toString() / 100);
+
       setAPR(_apr);
       //set bonus APR
       setBonusAPR(stakingInfo?.bonusAPR.toString() / 100 || "0");
@@ -149,33 +151,35 @@ function StakingInformation({
     const amount = ethers.utils
       .parseEther(amountTokenADeposit.toString())
       .toString();
-
     setLoadingDeposit(true);
-    try {
-      toast.promise(
-        (async () => {
-          const approve = await tokenERC20ContractSigner.approve(
-            contractHandlerAddress,
-            amount
-          );
-          await approve.wait();
+    const deposit = async () => {
+      try {
+        const approve = await tokenERC20ContractSigner.approve(
+          contractHandlerAddress,
+          amount
+        );
+        await approve.wait();
+        const gasEstimate = await contractHandleSigner.estimateGas.depositERC20(
+          amount
+        );
+        const deposit = await contractHandleSigner.depositERC20(amount, {
+          gasLimit: gasEstimate,
+        });
+        await deposit.wait();
 
-          const deposit = await contractHandleSigner.depositERC20(amount);
-          await deposit.wait();
-
-          onReload();
-        })(),
-        {
-          pending: "Depositing...",
-          success: "Deposit success",
-          error: "Deposit error",
-        }
-      );
-    } catch (error) {
-      console.error("Error in depositTokenA:", error.message || error);
-    } finally {
-      setLoadingDeposit(false);
-    }
+        onReload();
+      } catch (error) {
+        console.log(error);
+        throw error;
+      } finally {
+        setLoadingDeposit(false);
+      }
+    };
+    toast.promise(deposit(), {
+      pending: "Depositing...",
+      success: "Deposit success",
+      error: "Deposit error",
+    });
   };
   const getReward = async () => {
     const getReward = await contractHandleSigner.getCurrentRewardERC20();
@@ -183,52 +187,48 @@ function StakingInformation({
   };
   const claimReward = async () => {
     setLoadingClaimReward(true);
-
-    try {
-      const number = await contractHandleSigner.calculateRewardERC20();
-      const claim = async () => {
+    const claim = async () => {
+      try {
+        const number = await contractHandleSigner.calculateRewardERC20();
         if (number <= 0) {
           throw new Error("No reward to claim");
         }
         const tx = await contractHandleSigner.claimRewardERC20();
         await tx.wait();
         onReload();
-      };
-
-      await toast.promise(claim(), {
-        pending: "Claiming...",
-        success: "Claim success",
-        error: {
-          render({ data }) {
-            return ` ${data.message || data}`;
-          },
-        },
-      });
-    } catch (error) {
-      console.warn("Error while claiming reward:", error);
-    } finally {
-      setLoadingClaimReward(false);
-    }
+      } catch (error) {
+        console.log(error);
+        throw new Error("cannel claim reward");
+      } finally {
+        setLoadingClaimReward(false);
+      }
+    };
+    toast.promise(claim(), {
+      pending: "Claiming...",
+      success: "Claim success",
+      error: "Claim error",
+    });
   };
+
   const withdrawTokenA = async () => {
     setLoadingWithdraw(true);
-    try {
-      toast.promise(
-        contractHandleSigner.withdrawRewardERC20().then(async (tx) => {
-          await tx.wait();
-          onReload();
-        }),
-        {
-          pending: "Withdrawing...",
-          success: "Withdraw success",
-          error: "Withdraw error",
-        }
-      );
-    } catch (error) {
-      console.error("Error in withdrawTokenA:", error.message || error);
-    } finally {
-      setLoadingWithdraw(false);
-    }
+    const withdraw = async () => {
+      try {
+        const tx = await contractHandleSigner.withdrawRewardERC20();
+        await tx.wait();
+        onReload();
+      } catch (error) {
+        console.log(error);
+        throw error;
+      } finally {
+        setLoadingWithdraw(false);
+      }
+    };
+    toast.promise(withdraw(), {
+      pending: "Withdrawing...",
+      success: "Withdraw success",
+      error: "Withdraw error",
+    });
   };
   const getTimeLockLeft = (timeDeposit, lockTime) => {
     const timeLock = Number(timeDeposit) + Number(lockTime); // Tổng thời gian khóa
@@ -381,30 +381,26 @@ function StakingInformation({
               </div>
               <div className="flex gap-4 mt-4 ">
                 {amountTokenADeposit > 0 ? (
-                  <>
-                    {!loadingDeposit ? (
-                      <button
-                        type="button"
-                        className="bg-blue-500 hover:bg-blue-700  rounded-lg py-1 px-2 text-white"
-                        onClick={depositTokenA}
-                      >
-                        Deposit token A
-                      </button>
-                    ) : (
-                      <button
-                        className="bg-gray-500  rounded-lg py-1 px-2 text-white"
-                        type="button"
-                        disabled
-                      >
-                        Deposit token A
-                      </button>
-                    )}
-                  </>
+                  !loadingDeposit ? (
+                    <button
+                      type="button"
+                      className="bg-blue-500 hover:bg-blue-700 rounded-lg py-1 px-2 text-white"
+                      onClick={depositTokenA}
+                    >
+                      Deposit token A
+                    </button>
+                  ) : (
+                    <button
+                      className="bg-gray-500 rounded-lg py-1 px-2 text-white"
+                      disabled
+                    >
+                      Deposit token A
+                    </button>
+                  )
                 ) : (
                   <button
+                    className="bg-gray-500 rounded-lg py-1 px-2 text-white"
                     disabled
-                    className="bg-gray-500   rounded-lg py-1 px-2 text-white"
-                    // onClick={depositTokenA}
                   >
                     Deposit token A
                   </button>
@@ -419,11 +415,19 @@ function StakingInformation({
               </div>
             </div>
           </div>
-          <StakingNFTBInfomation />
+          <StakingNFTBInfomation
+            signer={signer}
+            contractHandleProvider={contractHandleProvider}
+            contractHandleSigner={contractHandleSigner}
+            tokenERC20ContractSigner={tokenERC20ContractSigner}
+            ethers={ethers}
+            contractHandlerAddress={contractHandlerAddress}
+            onReload={onReload}
+            reloadData={reloadData}
+          />
         </div>
       </div>
     </div>
   );
 }
-
 export default StakingInformation;
