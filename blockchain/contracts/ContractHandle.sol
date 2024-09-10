@@ -20,6 +20,20 @@ contract ContractHandle is ReentrancyGuard, Ownable {
     uint256 public bonusAPR = 200; // thưởng thêm 2%
     uint256 public lockTime = 30 seconds; // không cho withdraw sau 30s khi deposit
 
+    //event
+    event DepositTokenA(address indexed _from, uint256 _amount);
+    event WithdrawTokenA(
+        address indexed _from,
+        uint256 _amount,
+        uint256 _reward
+    );
+    event ClaimTokenA(address indexed _from, uint256 _reward);
+
+    event DepositNFTB(address indexed _from, uint256[] _tokenIds);
+    event WithdrawNFTB(address indexed _from, uint256[] _tokenIds);
+    event MintedNFTB(address indexed _from, uint256 _tokenId);
+    event UpdateAPR(uint256 _newBaseAPR);
+
     mapping(address => StakingInfo) public stakingInfo;
 
     struct StakingInfo {
@@ -75,6 +89,8 @@ contract ContractHandle is ReentrancyGuard, Ownable {
             tokenERC721.mint(msg.sender);
             useStakingInfo.mintNFTbCount += 1;
         }
+
+        emit DepositTokenA(msg.sender, _amount);
     }
     function calculateRewardERC20() public view returns (uint256) {
         StakingInfo storage useStakingInfo = stakingInfo[msg.sender];
@@ -118,6 +134,14 @@ contract ContractHandle is ReentrancyGuard, Ownable {
         useStakingInfo.totalAmountERC20 = 0;
         useStakingInfo.totalRewardERC20 = 0;
         useStakingInfo.startTimeDeposit = 0;
+
+        emit WithdrawTokenA(
+            msg.sender,
+            useStakingInfo.totalAmountERC20,
+            reward
+        );
+
+        delete stakingInfo[msg.sender];
     }
     function claimRewardERC20() external {
         StakingInfo storage useStakingInfo = stakingInfo[msg.sender];
@@ -128,6 +152,8 @@ contract ContractHandle is ReentrancyGuard, Ownable {
         tokenERC20.transferRewardERC20(msg.sender, reward);
         useStakingInfo.totalRewardERC20 = 0;
         useStakingInfo.startTimeDeposit = block.timestamp;
+
+        emit ClaimTokenA(msg.sender, reward);
     }
     //NFTB
     function depositNFTB(uint256[] calldata tokenIds) external nonReentrant {
@@ -149,6 +175,7 @@ contract ContractHandle is ReentrancyGuard, Ownable {
                 tokenIds[i]
             );
             userStakingInfo.tokenId.push(tokenIds[i]);
+            emit MintedNFTB(msg.sender, tokenIds[i]);
         }
 
         // Update staking info
@@ -159,6 +186,8 @@ contract ContractHandle is ReentrancyGuard, Ownable {
 
         uint256 _bonusAPR = bonusAPR * tokenIds.length;
         userStakingInfo.bonusAPR += _bonusAPR;
+
+        emit DepositNFTB(msg.sender, tokenIds);
     }
     function withRewardNFTB(uint256[] calldata tokenId) external {
         require(tokenId.length > 0, "NFT-B: Invalid tokenId");
@@ -200,9 +229,12 @@ contract ContractHandle is ReentrancyGuard, Ownable {
         useStakingInfo.startTimeDepositNFTB = block.timestamp;
         uint256 _bonusAPR = bonusAPR * tokenId.length;
         useStakingInfo.bonusAPR -= _bonusAPR;
+
+        emit WithdrawNFTB(msg.sender, tokenId);
     }
     function updateAPR(uint256 newBaseAPR) external onlyOwner {
         baseAPR = newBaseAPR;
+        emit UpdateAPR(newBaseAPR);
     }
     function getCurrentRewardERC20() public view returns (uint256) {
         uint256 reward = stakingInfo[msg.sender].totalRewardERC20 +
