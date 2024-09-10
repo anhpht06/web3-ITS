@@ -7,9 +7,9 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./TokenERC20.sol";
 import "./TokenERC721.sol";
 
-contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
-    TokenERC20 public tokenERC20; //token A
-    TokenERC721 public tokenERC721; //NFT-B
+contract ContractHandle is ReentrancyGuard, Ownable {
+    TokenERC20 public tokenERC20;
+    TokenERC721 public tokenERC721;
 
     event getData(uint256 data, address _from, address _to);
 
@@ -21,7 +21,6 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
     uint256 public lockTime = 30 seconds; // không cho withdraw sau 30s khi deposit
 
     mapping(address => StakingInfo) public stakingInfo;
-    mapping(address => StakingInfoNFTB) public stakingInfoNFTB;
 
     struct StakingInfo {
         uint256 totalAmountERC20;
@@ -30,13 +29,12 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
         uint256 startTimeDeposit;
         uint256 totalRewardERC20;
         uint256 mintNFTbCount;
-    }
-    struct StakingInfoNFTB {
+        //NFT
         uint256 totalAmountERC721;
-        uint256 startTimeDeposit;
-        uint256 bonusAPR;
+        uint256 startTimeDepositNFTB;
         uint256[] tokenId;
     }
+
     constructor(
         TokenERC20 _tokenERC20,
         TokenERC721 _tokenERC721
@@ -59,8 +57,6 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
             tokenERC20.balanceOf(msg.sender) >= _amount,
             "TokenA: insufficient balance in contract"
         );
-        tokenERC20.transferFrom(msg.sender, address(this), _amount);
-        useStakingInfo.totalAmountERC20 += _amount;
 
         if (useStakingInfo.startTimeDeposit != 0) {
             uint256 pendingReward = calculateRewardERC20();
@@ -68,6 +64,8 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
         }
 
         useStakingInfo.startTimeDeposit = block.timestamp;
+        tokenERC20.transferFrom(msg.sender, address(this), _amount);
+        useStakingInfo.totalAmountERC20 += _amount;
 
         //mint NFTB nếu deposit 1.000.000 token A
         uint256 depositCount = (useStakingInfo.totalAmountERC20 /
@@ -97,8 +95,7 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
             timeElapsed,
             365.25 days * 10000
         );
-        // uint256 reward = ((balance * (baseAPR + useStakingInfo.bonusAPR)) /
-        //     10000) * (timeElapsed / 30 seconds); //lãi 8% trong 1 năm
+
         return reward;
     }
     function withdrawRewardERC20() external {
@@ -108,10 +105,13 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
             block.timestamp >= (useStakingInfo.startTimeDeposit + lockTime),
             "TokenA: You can't withdraw now"
         );
-        uint256 reward = useStakingInfo.totalAmountERC20 +
-            calculateRewardERC20();
-        require(reward > 0, "TokenA: No have reward to Withdraw reward");
 
+        require(
+            useStakingInfo.totalAmountERC20 > 0,
+            "TokenA: No have reward to Withdraw reward"
+        );
+        uint256 reward = useStakingInfo.totalRewardERC20 +
+            calculateRewardERC20();
         tokenERC20.transfer(msg.sender, useStakingInfo.totalAmountERC20);
         tokenERC20.transferRewardERC20(msg.sender, reward);
 
@@ -130,51 +130,43 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
         useStakingInfo.startTimeDeposit = block.timestamp;
     }
     //NFTB
-    function depositNFTB(uint256[] calldata tokenId) external nonReentrant {
-        require(tokenId.length > 0, "NFT-B: Invalid tokenId");
-        for (uint256 i = 0; i < tokenId.length; i++) {
+    function depositNFTB(uint256[] calldata tokenIds) external nonReentrant {
+        require(tokenIds.length > 0, "NFT-B: No token IDs provided");
+
+        StakingInfo storage userStakingInfo = stakingInfo[msg.sender];
+
+        for (uint256 i = 0; i < tokenIds.length; i++) {
             require(
-                tokenERC721.ownerOf(tokenId[i]) == msg.sender,
-                "NFT-B: Invalid tokenId"
+                tokenERC721.ownerOf(tokenIds[i]) == msg.sender,
+                "NFT-B: Not owner of token ID"
             );
         }
 
-        StakingInfo storage useStakingInfo = stakingInfo[msg.sender];
-        StakingInfoNFTB storage useStakingInfoNFTB = stakingInfoNFTB[
-            msg.sender
-        ];
-
-        require(
-            tokenERC721.balanceOf(msg.sender) > 0,
-            "NFT-B: No have NFT B to deposit"
-        );
-
-        for (uint256 i = 0; i < tokenId.length; i++) {
-            tokenERC721.safeTransferFrom(msg.sender, address(this), tokenId[i]);
-            useStakingInfoNFTB.tokenId.push(tokenId[i]);
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            tokenERC721.transferAndUpdateTokens(
+                msg.sender,
+                address(this),
+                tokenIds[i]
+            );
+            userStakingInfo.tokenId.push(tokenIds[i]);
         }
 
-        useStakingInfo.totalRewardERC20 += calculateRewardERC20();
-        useStakingInfo.startTimeDeposit = block.timestamp;
-        uint256 _bonusAPR = bonusAPR * tokenId.length;
-        // useStakingInfo.APR += _bonusAPR;
-        useStakingInfoNFTB.bonusAPR += _bonusAPR;
+        // Update staking info
+        userStakingInfo.totalRewardERC20 += calculateRewardERC20();
+        userStakingInfo.startTimeDeposit = block.timestamp;
+        userStakingInfo.totalAmountERC721 += tokenIds.length;
+        userStakingInfo.startTimeDepositNFTB = block.timestamp;
 
-        useStakingInfoNFTB.totalAmountERC721 += tokenId.length;
-        useStakingInfoNFTB.startTimeDeposit = block.timestamp;
+        uint256 _bonusAPR = bonusAPR * tokenIds.length;
+        userStakingInfo.bonusAPR += _bonusAPR;
     }
-
     function withRewardNFTB(uint256[] calldata tokenId) external {
         require(tokenId.length > 0, "NFT-B: Invalid tokenId");
 
         StakingInfo storage useStakingInfo = stakingInfo[msg.sender];
-        StakingInfoNFTB storage useStakingInfoNFTB = stakingInfoNFTB[
-            msg.sender
-        ];
-
-        require(useStakingInfoNFTB.totalAmountERC721 > 0, "NFT-B: No deposit");
+        require(useStakingInfo.totalAmountERC721 > 0, "NFT-B: No deposit");
         require(
-            (useStakingInfoNFTB.startTimeDeposit + lockTime) >= block.timestamp,
+            block.timestamp >= (useStakingInfo.startTimeDeposit + lockTime),
             "NFT-B: You can't withdraw now"
         );
 
@@ -182,18 +174,18 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
             uint256 idToWithdraw = tokenId[i];
             bool found = false;
 
-            for (uint256 j = 0; j < useStakingInfoNFTB.tokenId.length; j++) {
-                if (useStakingInfoNFTB.tokenId[j] == idToWithdraw) {
-                    tokenERC721.safeTransferFrom(
+            for (uint256 j = 0; j < useStakingInfo.tokenId.length; j++) {
+                if (useStakingInfo.tokenId[j] == idToWithdraw) {
+                    tokenERC721.transferAndUpdateTokens(
                         address(this),
                         msg.sender,
                         idToWithdraw
                     );
 
-                    useStakingInfoNFTB.tokenId[j] = useStakingInfoNFTB.tokenId[
-                        useStakingInfoNFTB.tokenId.length - 1
+                    useStakingInfo.tokenId[j] = useStakingInfo.tokenId[
+                        useStakingInfo.tokenId.length - 1
                     ];
-                    useStakingInfoNFTB.tokenId.pop();
+                    useStakingInfo.tokenId.pop();
                     found = true;
                     break;
                 }
@@ -202,25 +194,12 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
             if (!found) {}
         }
 
-        // Cập nhật tổng số lượng NFT
-        useStakingInfoNFTB.totalAmountERC721 -= tokenId.length;
-
-        useStakingInfo.totalRewardERC20 = calculateRewardERC20();
-        useStakingInfo.startTimeDeposit = 0;
+        useStakingInfo.totalAmountERC721 -= tokenId.length;
+        useStakingInfo.totalRewardERC20 += calculateRewardERC20();
+        useStakingInfo.startTimeDeposit = block.timestamp;
+        useStakingInfo.startTimeDepositNFTB = block.timestamp;
         uint256 _bonusAPR = bonusAPR * tokenId.length;
-        // useStakingInfo.APR -= _bonusAPR;
-        useStakingInfoNFTB.bonusAPR -= _bonusAPR;
-    }
-
-    function getCurrentAPR() public view returns (uint256) {
-        StakingInfoNFTB storage useStrakingInfoNFTB = stakingInfoNFTB[
-            msg.sender
-        ];
-        if (useStrakingInfoNFTB.bonusAPR == 0) {
-            return baseAPR;
-        } else {
-            return baseAPR + useStrakingInfoNFTB.bonusAPR;
-        }
+        useStakingInfo.bonusAPR -= _bonusAPR;
     }
     function updateAPR(uint256 newBaseAPR) external onlyOwner {
         baseAPR = newBaseAPR;
@@ -243,28 +222,15 @@ contract ContractHandle is TokenERC20, ReentrancyGuard, Ownable {
     function balaceOfERC721TotalSupply() public view returns (uint256) {
         return tokenERC721.balanceOfTokenERC721();
     }
-    // // Get owned NFT-Bs
-    // function getOwnedNFTs(
-    //     address _adress
-    // ) external view returns (uint256[] memory) {
-    //     uint256 balance = tokenERC721.balanceOf(_adress);
-    //     uint256[] memory ownedNFTs = new uint256[](balance);
-    //     uint256 index = 0;
-    //     uint256 tokenId = 0;
-
-    //     while (index < balance) {
-    //         if (tokenERC721.ownerOf(tokenId) == _adress) {
-    //             ownedNFTs[index] = tokenId;
-    //             index++;
-    //         }
-    //         tokenId++;
-    //     }
-
-    //     return ownedNFTs;
-    // }
     function getOwnedNFTs(
         address _address
     ) external view returns (uint256[] memory) {
         return tokenERC721.getOwnedTokens(_address);
+    }
+    //
+    function getStakingInfo(
+        address _address
+    ) external view returns (StakingInfo memory) {
+        return stakingInfo[_address];
     }
 }
