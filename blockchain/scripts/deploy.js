@@ -28,14 +28,15 @@ async function main() {
   console.log("TokenERC721 address:", await tokenERC721.getAddress());
   console.log("ContractHandle address:", await contractHandle.getAddress());
 
-  saveContractInfo(
+  saveContractInfoFrontend(
     await contractHandle.getAddress(),
     await tokenERC20.getAddress(),
     await tokenERC721.getAddress()
   );
+  saveContractInfoBackend(await contractHandle.getAddress());
 }
 
-function saveContractInfo(contractHandle, tokenERC20, tokenERC721) {
+function saveContractInfoFrontend(contractHandle, tokenERC20, tokenERC721) {
   const fs = require("fs");
   const contractsDir = path.join(
     __dirname,
@@ -66,6 +67,35 @@ function saveContractInfo(contractHandle, tokenERC20, tokenERC721) {
     { name: "ContractHandle" },
     { name: "TokenERC20" },
     { name: "TokenERC721" },
+  ];
+  contractList.forEach((contract) => {
+    const artifact = artifacts.readArtifactSync(contract.name);
+    fs.writeFileSync(
+      path.join(contractsDir, `${contract.name}.json`),
+      JSON.stringify(artifact, null, 2)
+    );
+  });
+}
+function saveContractInfoBackend(contractHandle) {
+  const fs = require("fs");
+  const contractsDir = path.join(__dirname, "..", "..", "backend", "contracts");
+
+  if (!fs.existsSync(contractsDir)) {
+    fs.mkdirSync(contractsDir, { recursive: true });
+  }
+  fs.writeFileSync(
+    path.join(contractsDir, "contract-address.json"),
+    JSON.stringify(
+      {
+        contractHandle: contractHandle,
+      },
+      undefined,
+      2
+    )
+  );
+
+  const contractList = [
+    { name: "ContractHandle" },
   ];
   contractList.forEach((contract) => {
     const artifact = artifacts.readArtifactSync(contract.name);
