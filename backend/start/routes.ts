@@ -1,16 +1,7 @@
-/*
-|--------------------------------------------------------------------------
-| Routes file
-|--------------------------------------------------------------------------
-|
-| The routes file is used for defining the HTTP routes.
-|
-*/
-
 import router from '@adonisjs/core/services/router'
-
-router.get('/', async () => {
-  return {
-    hello: 'world',
-  }
-})
+import HandleGetDataDatabaseController from '#controllers/handle_get_data_database_controller'
+router
+  .group(() => {
+    router.get('/getDataByUser', [HandleGetDataDatabaseController, 'getDataByUser'])
+  })
+  .prefix('/blockchain')

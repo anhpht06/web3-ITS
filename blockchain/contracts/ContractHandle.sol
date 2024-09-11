@@ -54,6 +54,7 @@ contract ContractHandle is ReentrancyGuard, Ownable, IERC721Receiver {
     }
 
     mapping(address => StakingInfo) public stakingInfo;
+    mapping(address => uint256) public mintNFTbCount;
 
     struct StakingInfo {
         uint256 totalAmountERC20;
@@ -147,7 +148,9 @@ contract ContractHandle is ReentrancyGuard, Ownable, IERC721Receiver {
         );
         uint256 reward = useStakingInfo.totalRewardERC20 +
             calculateRewardERC20();
-        tokenERC20.transfer(msg.sender, useStakingInfo.totalAmountERC20);
+        uint256 totalAmout = useStakingInfo.totalAmountERC20;
+
+        tokenERC20.transferAmoutOfERC20(msg.sender, totalAmout);
         tokenERC20.transferRewardERC20(msg.sender, reward);
 
         useStakingInfo.totalAmountERC20 = 0;
@@ -159,8 +162,6 @@ contract ContractHandle is ReentrancyGuard, Ownable, IERC721Receiver {
             useStakingInfo.totalAmountERC20,
             reward
         );
-
-        delete stakingInfo[msg.sender];
     }
     function claimRewardERC20() external {
         StakingInfo storage useStakingInfo = stakingInfo[msg.sender];

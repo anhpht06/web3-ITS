@@ -39,7 +39,10 @@ contract TokenERC20 is ERC20 {
         );
         _transfer(address(this), _to, _amount);
     }
-    
+    function transferAmoutOfERC20(address _to, uint256 _amount) external {
+        transfer(_to, _amount);
+    }
+
     function balanceOfTokenERC20() public view returns (uint256) {
         return balanceOf(address(this));
     }
