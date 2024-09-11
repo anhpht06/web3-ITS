@@ -10,11 +10,13 @@ contract TokenERC721 is ERC721 {
 
     mapping(address => uint256[]) private _ownedTokens;
 
-    function mint(address to) external {
+    function safeMint(address to) external returns (uint256) {
         uint256 _tokenId = nextTokenId;
-        _mint(to, _tokenId);
+        _safeMint(to, _tokenId);
         _ownedTokens[to].push(_tokenId);
         nextTokenId += 1;
+
+        return _tokenId;
     }
 
     function balanceOfTokenERC721() public view returns (uint256) {
