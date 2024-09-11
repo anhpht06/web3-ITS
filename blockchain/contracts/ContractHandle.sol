@@ -2,12 +2,13 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "./TokenERC20.sol";
 import "./TokenERC721.sol";
 
-contract ContractHandle is ReentrancyGuard, Ownable {
+contract ContractHandle is ReentrancyGuard, Ownable, IERC721Receiver {
     TokenERC20 public tokenERC20;
     TokenERC721 public tokenERC721;
 
@@ -33,6 +34,24 @@ contract ContractHandle is ReentrancyGuard, Ownable {
     event WithdrawNFTB(address indexed _from, uint256[] _tokenIds);
     event MintedNFTB(address indexed _from, uint256 _tokenId);
     event UpdateAPR(uint256 _newBaseAPR);
+
+    event NFTReceived(
+        address indexed operator,
+        address indexed from,
+        uint indexed tokenId,
+        bytes data
+    );
+
+    function onERC721Received(
+        address operator,
+        address from,
+        uint tokenId,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        emit NFTReceived(operator, from, tokenId, data);
+
+        return this.onERC721Received.selector;
+    }
 
     mapping(address => StakingInfo) public stakingInfo;
 

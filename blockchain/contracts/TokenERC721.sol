@@ -36,7 +36,7 @@ contract TokenERC721 is ERC721 {
             ownerOf(tokenId) == from,
             "ERC721: transfer of token that is not owned"
         );
-        transferFrom(from, to, tokenId);
+        safeTransferFrom(from, to, tokenId);
         _ownedTokens[to].push(tokenId);
         _updateTokenOwnership(from, tokenId);
     }

@@ -53,7 +53,6 @@ export default function StakingNFTBInfomation({
         const tx = await contractHandleSigner.withRewardNFTB(selectedNFTs, {
           gasLimit: gasEstimate,
         });
-        console.log("LLL", gasEstimate), await tx.wait();
         onReload();
       } catch (error) {
         console.log(error);
