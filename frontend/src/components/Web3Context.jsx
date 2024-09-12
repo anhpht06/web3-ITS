@@ -42,11 +42,11 @@ export function Web3Provider({ children }) {
 
     try {
       // Tắt để test trên localhost khi deploy
-      // const chainId = await window.ethereum.request({ method: "eth_chainId" });
-      // if (chainId !== BNC_CHAIN_ID || chainId !== localhost_id) {
-      //   toast.error("Please switch to the BNC network!");
-      //   return;
-      // }
+      const chainId = await window.ethereum.request({ method: "eth_chainId" });
+      if (chainId !== BNC_CHAIN_ID) {
+        toast.error("Please switch to the BNC network!");
+        return;
+      }
 
       await window.ethereum.request({ method: "eth_requestAccounts" });
 

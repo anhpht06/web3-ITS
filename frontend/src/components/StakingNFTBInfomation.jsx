@@ -4,11 +4,8 @@ import { toast } from "react-toastify";
 
 export default function StakingNFTBInfomation({
   signer,
-  ethers,
   contractHandleProvider,
   contractHandleSigner,
-  tokenERC20ContractSigner,
-  contractHandlerAddress,
   onReload,
   reloadData,
 }) {
@@ -17,9 +14,13 @@ export default function StakingNFTBInfomation({
   const [selectedNFTs, setSelectedNFTs] = useState([]);
   const [loadingWithdraw, setLoadingWithdraw] = useState(false);
 
+  const [timeDeposit, setTimeDeposit] = useState("");
+  const [timeLeft, setTimeLeft] = useState(0);
+
   const fetchData = async () => {
     setListNFTB([]);
     setSelectedNFTs([]);
+
     try {
       //get address account
       const addressAccount = await signer.getAddress();
@@ -29,6 +30,14 @@ export default function StakingNFTBInfomation({
       );
       // setListNFTB(listNFTB);
       setListNFTB(stakingInfo?.tokenId);
+
+      const timeDeposit = stakingInfo?.startTimeDeposit.toString();
+      setTimeDeposit(timeDeposit);
+
+      const lock = await contractHandleProvider.lockTime();
+
+      const _timeLeft = getTimeLockLeft(timeDeposit, Number(lock.toString()));
+      setTimeLeft(_timeLeft);
     } catch (error) {
       console.log(error);
     }
@@ -43,6 +52,23 @@ export default function StakingNFTBInfomation({
     });
   }, [contractHandleProvider, signer, reloadData]);
 
+  //check time lock withdraw
+  useEffect(() => {
+    if (!checkLoadData) {
+      return;
+    }
+    const interval = setInterval(() => {
+      setTimeLeft((prevTime) => {
+        if (prevTime <= 0) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prevTime - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [checkLoadData]);
   const withdrawNFTB = async () => {
     if (!selectedNFTs.length > 0) return;
     setLoadingWithdraw(true);
@@ -83,6 +109,15 @@ export default function StakingNFTBInfomation({
         return [...prevSelected, nft];
       }
     });
+  };
+  const getTimeLockLeft = (timeDeposit, lockTime) => {
+    const timeLock = Number(timeDeposit) + Number(lockTime); // Tổng thời gian khóa
+    const timeNow = Math.floor(Date.now() / 1000); // Thời gian hiện tại tính bằng giây
+    const timeLeft = timeLock - timeNow; // Tính thời gian còn lại
+    if (timeLeft > 0) {
+      return timeLeft;
+    }
+    return 0;
   };
   return (
     <div className="flex flex-col border-2 shadow-lg rounded-lg h-auto bg-gray-200 font-bold mt-6">
@@ -137,15 +172,24 @@ export default function StakingNFTBInfomation({
             <div className="flex gap-2">
               {selectedNFTs.length > 0 ? (
                 !loadingWithdraw ? (
-                  <button
-                    className="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded mt-6 w-max"
-                    onClick={withdrawNFTB}
-                  >
-                    Withdraw NFT-B
-                  </button>
+                  timeLeft > 0 ? (
+                    <button
+                      className="bg-gray-500 text-white font-bold py-2 px-4 rounded mt-6 w-max"
+                      disabled
+                    >
+                      Withdraw NFT-B in {timeLeft}
+                    </button>
+                  ) : (
+                    <button
+                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-6 w-max"
+                      onClick={withdrawNFTB}
+                    >
+                      Withdraw NFT-B
+                    </button>
+                  )
                 ) : (
                   <button
-                    className="bg-gray-500  text-white font-bold py-2 px-4 rounded mt-6 w-max"
+                    className="bg-gray-500 text-white font-bold py-2 px-4 rounded mt-6 w-max"
                     disabled
                   >
                     Withdraw NFT-B
@@ -153,7 +197,7 @@ export default function StakingNFTBInfomation({
                 )
               ) : (
                 <button
-                  className="bg-gray-500  text-white font-bold py-2 px-4 rounded mt-6 w-max"
+                  className="bg-gray-500 text-white font-bold py-2 px-4 rounded mt-6 w-max"
                   disabled
                 >
                   Withdraw NFT-B
