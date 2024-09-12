@@ -1,7 +1,9 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import Transactions from '#models/transactions'
 
 export default class HandleGetDataDatabaseController {
   public async getDataByUser(ctx: HttpContext) {
-    return ctx.response.json({ data: 'Hello Tuaans Anh' })
+    const data = await Transactions.query()
+    return ctx.response.json({ data })
   }
 }

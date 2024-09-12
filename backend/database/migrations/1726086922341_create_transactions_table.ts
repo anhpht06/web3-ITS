@@ -7,10 +7,13 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
 
-      table.string('tx_hash').notNullable() // txHash
-      table.string('metthod').notNullable() // Method
+      table.integer('logIndex').notNullable()
+      table.index('logIndex')
+      table.string('txHash').notNullable() // txHash
+      table.index('txHash')
+      table.string('method').notNullable() // Method
       table.string('block').notNullable() // Block
-      table.string('time').notNullable() // Time
+      table.string('timestamp').notNullable() // Time
       table.string('from').notNullable() // From
       table.string('to').notNullable() // To
       table.string('amount').notNullable() // Amount

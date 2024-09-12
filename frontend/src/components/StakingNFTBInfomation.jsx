@@ -53,6 +53,7 @@ export default function StakingNFTBInfomation({
         const tx = await contractHandleSigner.withRewardNFTB(selectedNFTs, {
           gasLimit: gasEstimate,
         });
+        await tx.wait();
         onReload();
       } catch (error) {
         console.log(error);
@@ -62,7 +63,7 @@ export default function StakingNFTBInfomation({
         setSelectedNFTs([]);
       }
     };
-    toast.promise(withdraw(), {
+    await toast.promise(withdraw(), {
       pending: "Withdrawing...",
       success: "Withdraw success",
       error: "Withdraw error",

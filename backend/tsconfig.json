@@ -2,6 +2,10 @@
   "extends": "@adonisjs/tsconfig/tsconfig.app.json",
   "compilerOptions": {
     "rootDir": "./",
-    "outDir": "./build"
+    "outDir": "./build",
+    // "module": "commonjs",
+    // "target": "es6",
+    // "resolveJsonModule": true,
+    // "esModuleInterop": true
   }
 }

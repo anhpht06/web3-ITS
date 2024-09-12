@@ -148,10 +148,10 @@ function StakingInformation({
   }, [checkLoadData, rewardTokenADeposit]);
   //deposit token A
   const depositTokenA = async () => {
-    const amount = ethers.utils
-      .parseEther(amountTokenADeposit.toString())
-      .toString();
+    const amount = ethers.utils.parseEther(amountTokenADeposit.toString());
+
     setLoadingDeposit(true);
+    console.log("amount: ", amount);
     const deposit = async () => {
       try {
         const approve = await tokenERC20ContractSigner.approve(
@@ -166,7 +166,6 @@ function StakingInformation({
           gasLimit: gasEstimate,
         });
         await deposit.wait();
-
         onReload();
       } catch (error) {
         console.log(error);

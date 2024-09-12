@@ -36,20 +36,24 @@ contract ContractHandle is ReentrancyGuard, Ownable, IERC721Receiver {
     event ClaimTokenA(
         address indexed _from,
         address indexed _to,
-        uint256 _reward
+        uint256 _amount
     );
 
     event DepositNFTB(
         address indexed _from,
         address indexed _to,
-        uint256 _tokenIds
+        uint256 _amount
     );
     event WithdrawNFTB(
         address indexed _from,
         address indexed _to,
-        uint256 _tokenIds
+        uint256 _amount
     );
-    event MintedNFTB(address indexed _to, uint256 _tokenId);
+    event MintedNFTB(
+        address indexed _from,
+        address indexed _to,
+        uint256 _amount
+    );
     event UpdateAPR(address indexed admin, uint256 _newBaseAPR);
 
     event NFTReceived(
@@ -132,7 +136,7 @@ contract ContractHandle is ReentrancyGuard, Ownable, IERC721Receiver {
             for (uint256 i = 0; i < depositCount; i++) {
                 uint256 tokenId = tokenERC721.safeMint(msg.sender);
                 useStakingInfo.mintNFTbCount += 1;
-                emit MintedNFTB(msg.sender, tokenId);
+                emit MintedNFTB(address(this), msg.sender, tokenId);
             }
         }
     }

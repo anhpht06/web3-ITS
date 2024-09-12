@@ -78,7 +78,14 @@ function saveContractInfoFrontend(contractHandle, tokenERC20, tokenERC721) {
 }
 function saveContractInfoBackend(contractHandle) {
   const fs = require("fs");
-  const contractsDir = path.join(__dirname, "..", "..", "backend", "contracts");
+  const contractsDir = path.join(
+    __dirname,
+    "..",
+    "..",
+    "backend",
+    "app",
+    "contracts"
+  );
 
   if (!fs.existsSync(contractsDir)) {
     fs.mkdirSync(contractsDir, { recursive: true });
@@ -94,9 +101,7 @@ function saveContractInfoBackend(contractHandle) {
     )
   );
 
-  const contractList = [
-    { name: "ContractHandle" },
-  ];
+  const contractList = [{ name: "ContractHandle" }];
   contractList.forEach((contract) => {
     const artifact = artifacts.readArtifactSync(contract.name);
     fs.writeFileSync(
