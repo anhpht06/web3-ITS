@@ -37,7 +37,8 @@ async function main() {
   saveContractInfoFrontend(
     await contractHandle.getAddress(),
     await tokenERC20.getAddress(),
-    await tokenERC721.getAddress()
+    await tokenERC721.getAddress(),
+    adminAddress
   );
   saveContractInfoBackend(
     await contractHandle.getAddress(),
@@ -45,7 +46,12 @@ async function main() {
   );
 }
 
-function saveContractInfoFrontend(contractHandle, tokenERC20, tokenERC721) {
+function saveContractInfoFrontend(
+  contractHandle,
+  tokenERC20,
+  tokenERC721,
+  adminAddress
+) {
   const fs = require("fs");
   const contractsDir = path.join(
     __dirname,
@@ -66,6 +72,7 @@ function saveContractInfoFrontend(contractHandle, tokenERC20, tokenERC721) {
         contractHandle: contractHandle,
         tokenERC20: tokenERC20,
         tokenERC721: tokenERC721,
+        adminAddress: adminAddress,
       },
       undefined,
       2

@@ -31,9 +31,21 @@ export default class HandleGetDataBlockchainsController {
   }
 
   public async updateLatestBlock(latestBlock: number) {
-    LatestBlock.create({
-      latestBlock,
-    })
+    // Tìm bản ghi hiện tại. Giả sử bạn chỉ có một bản ghi duy nhất trong bảng.
+    let block = await LatestBlock.first()
+
+    if (block) {
+      // Nếu bản ghi đã tồn tại, cập nhật trường `latestBlock`
+      block.latestBlock = latestBlock
+      await block.save()
+    } else {
+      // Nếu không có bản ghi nào, tạo một bản ghi mới
+      await LatestBlock.create({ latestBlock })
+    }
+
+    // LatestBlock.create({
+    //   latestBlock,
+    // })
   }
 
   public async fetchData() {

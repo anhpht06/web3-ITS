@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Home from "./components/Home";
 import History from "./components/History";
 import Header from "./Header";
+import ChangeBaseAPR from "./components/ChangeBaseAPR";
 import { Web3Provider } from "./components/Web3Context";
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/history" element={<History />} />
+          <Route path="/change-base-apr" element={<ChangeBaseAPR />} />
         </Routes>
       </Router>
     </Web3Provider>

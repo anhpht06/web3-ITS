@@ -6,9 +6,33 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useWeb3Context } from "./components/Web3Context";
 import { useNavigate } from "react-router-dom";
+import contractAddress from "../src/contracts/contract-address.json";
+
 function Header() {
   const navigate = useNavigate();
   const { connectMetaMask, disconnectMetaMask, address } = useWeb3Context();
+  const [isCheckAdmin, setIsCheckAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!address) {
+      return;
+    }
+    const adminAddress = contractAddress.adminAddress
+      ? contractAddress.adminAddress.toLowerCase().replace(/^0x/, "")
+      : "";
+    const userAddress = contractAddress.adminAddress
+      ? address.toLowerCase().replace(/^0x/, "")
+      : "";
+
+    if (adminAddress === userAddress) {
+      console.log("admin");
+      setIsCheckAdmin(true);
+    } else {
+      console.log("user");
+      setIsCheckAdmin(false);
+    }
+  }, [address]);
+  //check admin
 
   //check if metamask is connected or not
   useEffect(() => {
@@ -16,6 +40,7 @@ function Header() {
       navigate("/");
     }
   }, [localStorage.getItem("isMetaMaskConnected")]);
+
   return (
     <div className="container max-w-full flex justify-between items-center p-2 text-white bg-black bg-opacity-90">
       <div>
@@ -49,12 +74,16 @@ function Header() {
 
             <div className="absolute right-0 z-10  w-48  origin-top-right rounded-md shadow-lg bg-gray-700 ring-1 ring-black ring-opacity-5 hidden group-hover:block">
               <div className="py-1 ">
-                <Link
-                  to={"/admin"}
-                  className="block px-4 py-2 text-sm text-white hover:bg-gray-600 hover:rounded-lg"
-                >
-                  Admin
-                </Link>
+                {isCheckAdmin ? (
+                  <Link
+                    to={"/change-base-apr"}
+                    className="block px-4 py-2 text-sm text-white hover:bg-gray-600 hover:rounded-lg"
+                  >
+                    Change Base APR
+                  </Link>
+                ) : (
+                  <></>
+                )}
 
                 <Link
                   to={"/"}
