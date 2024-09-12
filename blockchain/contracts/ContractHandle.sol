@@ -306,4 +306,9 @@ contract ContractHandle is ReentrancyGuard, Ownable, IERC721Receiver {
     ) external view returns (StakingInfo memory) {
         return stakingInfo[_address];
     }
+    //update BaseAPR
+    function updateBaseAPR(uint256 newBaseAPR) external onlyOwner {
+        baseAPR = newBaseAPR;
+        // emit UpdateAPR(msg.sender, newBaseAPR);
+    }
 }

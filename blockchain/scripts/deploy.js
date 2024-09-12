@@ -1,7 +1,10 @@
 const path = require("path");
+const fs = require("fs");
+const { ethers } = require("hardhat");
 
 async function main() {
   const [deployer] = await ethers.getSigners();
+  const provider = ethers.provider;
   console.log(
     "Deploying the contracts with the account:",
     await deployer.getAddress()
@@ -22,7 +25,10 @@ async function main() {
     await tokenERC20.getAddress(),
     await tokenERC721.getAddress()
   );
-  await contractHandle.waitForDeployment();
+
+  const deploymentReceipt = await contractHandle
+    .deploymentTransaction()
+    .wait(1);
 
   console.log("TokenERC20 address:", await tokenERC20.getAddress());
   console.log("TokenERC721 address:", await tokenERC721.getAddress());
@@ -33,7 +39,10 @@ async function main() {
     await tokenERC20.getAddress(),
     await tokenERC721.getAddress()
   );
-  saveContractInfoBackend(await contractHandle.getAddress());
+  saveContractInfoBackend(
+    await contractHandle.getAddress(),
+    deploymentReceipt.blockNumber
+  );
 }
 
 function saveContractInfoFrontend(contractHandle, tokenERC20, tokenERC721) {
@@ -76,7 +85,7 @@ function saveContractInfoFrontend(contractHandle, tokenERC20, tokenERC721) {
     );
   });
 }
-function saveContractInfoBackend(contractHandle) {
+function saveContractInfoBackend(contractHandle, blockNumber) {
   const fs = require("fs");
   const contractsDir = path.join(
     __dirname,
@@ -95,6 +104,7 @@ function saveContractInfoBackend(contractHandle) {
     JSON.stringify(
       {
         contractHandle: contractHandle,
+        blockNumber: blockNumber,
       },
       undefined,
       2

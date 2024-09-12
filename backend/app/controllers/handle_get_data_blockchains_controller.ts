@@ -3,6 +3,7 @@ import { BigNumber, ethers } from 'ethers'
 import {
   getDepositContractABI,
   getDepositContractAddress,
+  getLatestBlock,
 } from '../services/read_json_file_service.js'
 import Transactions from '#models/transactions'
 import LatestBlock from '#models/latest_block'
@@ -17,7 +18,7 @@ export default class HandleGetDataBlockchainsController {
     'WithdrawNFTB',
     'MintedNFTB',
   ]
-  private fromBlock = 43785283
+  private fromBlock = Number(getLatestBlock())
   private stepBlock = 10000
 
   constructor() {

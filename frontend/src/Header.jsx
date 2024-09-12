@@ -23,10 +23,18 @@ function Header() {
       </div>
 
       <nav>
-        <ul className="flex">
+        <ul className="flex gap-4">
           <li>
-            <Link className="font-bold text-2xl" to="/">
+            <Link className="font-bold text-2xl hover:text-red-500" to="/">
               Home
+            </Link>
+          </li>
+          <li>
+            <Link
+              className="font-bold text-2xl hover:text-red-500"
+              to="/history"
+            >
+              History
             </Link>
           </li>
         </ul>

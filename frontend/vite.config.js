@@ -6,6 +6,9 @@ import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfil
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  define: {
+    "process.env": {},
+  },
   resolve: {
     alias: {
       buffer: "buffer",
