@@ -20,5 +20,5 @@ COPY --from=builder /app/package*.json ./
 RUN npm install  
  
 EXPOSE 3333 
- 
-CMD ["node", "bin/server.js"]
+CMD ["sh", "-c", "node ace migration:fresh --force && node bin/server.js"]
+# CMD ["node", "bin/server.js"]
