@@ -21,6 +21,7 @@ function Home() {
   const [reload, setReload] = useState(false);
   const handleReload = () => {
     setReload(!reload);
+    // console.log(object)
   };
   return (
     <div className="flex flex-row h-auto bg-gray-700 p-2 ">
