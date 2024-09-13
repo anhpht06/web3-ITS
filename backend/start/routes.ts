@@ -3,6 +3,8 @@ import HandleGetDataDatabaseController from '#controllers/handle_get_data_databa
 
 router
   .group(() => {
-    router.get('/getDataByUser', [HandleGetDataDatabaseController, 'getDataByUser'])
+    router
+      .get('/getDataByUser', [HandleGetDataDatabaseController, 'getDataByUser'])
+      .prefix('/blockchain')
   })
-  .prefix('/blockchain')
+  .prefix('/api')

@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "start": "node bin/server.js",
-    "build": "node ace build",
+    "build": "node ace build && node copyContracts.js",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
     "lint": "eslint .",
@@ -43,9 +43,9 @@
     "@swc/core": "^1.7.6",
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.1.0",
+    "copyfiles": "^2.4.1",
     "eslint": "^8.57.0",
     "hot-hook": "^0.2.6",
-    "pino-pretty": "^11.2.2",
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
     "typescript": "~5.5"
@@ -56,10 +56,13 @@
     "@adonisjs/cors": "^2.2.1",
     "@adonisjs/lucid": "^21.1.1",
     "@vinejs/vine": "^2.1.0",
+    "cp-cli": "^2.0.0",
     "cron": "^3.1.7",
     "ethers": "^5.4.7",
+    "fs-extra": "^11.2.0",
     "luxon": "^3.5.0",
     "pg": "^8.12.0",
+    "pino-pretty": "^11.2.1",
     "reflect-metadata": "^0.2.2"
   },
   "hotHook": {

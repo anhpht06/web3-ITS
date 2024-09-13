@@ -2,7 +2,7 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useWeb3Context } from "./Web3Context";
-import { getAllTRansaction } from "../sever/transactions";
+import { getAllTRansaction } from "../service/transactions";
 import {
   calculateTimestamp,
   convertNumber,
@@ -35,8 +35,8 @@ function History() {
   const handlePageChange = (page) => {
     setCurrentPage(page);
     fetchData(page);
-    setText(`Fetching data for page ${page}`);
-    console.log(`Fetching data for page ${page}`);
+    // setText(`Fetching data for page ${page}`);
+    // console.log(`Fetching data for page ${page}`);
   };
 
   const prevPage = () => {

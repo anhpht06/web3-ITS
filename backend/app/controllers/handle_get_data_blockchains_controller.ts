@@ -49,6 +49,9 @@ export default class HandleGetDataBlockchainsController {
   }
 
   public async fetchData() {
+    console.log('getDepositContractAddress', getDepositContractAddress())
+    console.log('getLatestBlock', getLatestBlock())
+
     const contract = new ethers.Contract(
       getDepositContractAddress(),
       getDepositContractABI(),

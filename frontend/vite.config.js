@@ -3,12 +3,8 @@ import react from "@vitejs/plugin-react-swc";
 import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
 import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfill";
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  define: {
-    "process.env": {},
-  },
   resolve: {
     alias: {
       buffer: "buffer",
@@ -23,5 +19,17 @@ export default defineConfig({
         NodeModulesPolyfillPlugin(),
       ],
     },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            return "vendor"; // Tách các gói từ node_modules thành một chunk riêng
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 500, // Giảm giới hạn kích thước cảnh báo xuống 500 kB
   },
 });
