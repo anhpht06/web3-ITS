@@ -11,6 +11,7 @@ import tokenERC721 from "../contracts/TokenERC721.json";
 
 const Web3Context = createContext();
 const BNC_CHAIN_ID = "0x61";
+const TMX_CHAIN_ID = "0x34a1";
 export function Web3Provider({ children }) {
   const contractHandlerAddress = contractAddress.contractHandle;
   const tokenERC20Address = contractAddress.tokenERC20;
@@ -43,7 +44,8 @@ export function Web3Provider({ children }) {
     try {
       // Tắt để test trên localhost khi deploy
       const chainId = await window.ethereum.request({ method: "eth_chainId" });
-      if (chainId !== BNC_CHAIN_ID) {
+      console.log("chanid::", chainId);
+      if (chainId !== BNC_CHAIN_ID && chainId !== TMX_CHAIN_ID) {
         toast.error("Please switch to the BNC network!");
         return;
       }

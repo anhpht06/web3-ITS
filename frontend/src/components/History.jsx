@@ -13,7 +13,6 @@ function History() {
   const { connectMetaMask, disconnectMetaMask, address, accounts } =
     useWeb3Context();
 
-  const [text, setText] = useState("");
   const [dataTransaction, setDataTransaction] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,8 +34,6 @@ function History() {
   const handlePageChange = (page) => {
     setCurrentPage(page);
     fetchData(page);
-    // setText(`Fetching data for page ${page}`);
-    // console.log(`Fetching data for page ${page}`);
   };
 
   const prevPage = () => {

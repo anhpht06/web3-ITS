@@ -29,5 +29,11 @@ module.exports = {
       gasPrice: 20000000000,
       accounts: [process.env.PRIVATE_KEY],
     },
+    imxTestNet: {
+      url: "https://rpc.testnet.immutable.com",
+      chainId: 13473,
+      gasPrice: 20000000000,
+      accounts: [process.env.PRIVATE_KEY],
+    },
   },
 };

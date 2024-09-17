@@ -5,6 +5,7 @@ export async function getAllTRansaction(page) {
   try {
     if (!page) page = 1;
     const transactions = await axios.get(URL_GET_HISTORY + `?page=${page}`);
+    console.log(transactions);
     return transactions?.data?.data;
   } catch (error) {
     console.error(error);

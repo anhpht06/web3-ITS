@@ -7,6 +7,7 @@ import {
 } from '../services/read_json_file_service.js'
 import Transactions from '#models/transactions'
 import LatestBlock from '#models/latest_block'
+import env from '#start/env'
 
 export default class HandleGetDataBlockchainsController {
   private provider: ethers.providers.JsonRpcProvider
@@ -19,10 +20,10 @@ export default class HandleGetDataBlockchainsController {
     'MintedNFTB',
   ]
   private fromBlock = Number(getLatestBlock())
-  private stepBlock = 10000
+  private stepBlock = 5000
 
   constructor() {
-    this.provider = new ethers.providers.JsonRpcProvider('https://bsc-testnet-rpc.publicnode.com')
+    this.provider = new ethers.providers.JsonRpcProvider(env.get('CHAIN_TMX_TESTNET'))
   }
 
   public async getLatestBlock() {
@@ -31,21 +32,14 @@ export default class HandleGetDataBlockchainsController {
   }
 
   public async updateLatestBlock(latestBlock: number) {
-    // Tìm bản ghi hiện tại. Giả sử bạn chỉ có một bản ghi duy nhất trong bảng.
     let block = await LatestBlock.first()
 
     if (block) {
-      // Nếu bản ghi đã tồn tại, cập nhật trường `latestBlock`
       block.latestBlock = latestBlock
       await block.save()
     } else {
-      // Nếu không có bản ghi nào, tạo một bản ghi mới
       await LatestBlock.create({ latestBlock })
     }
-
-    // LatestBlock.create({
-    //   latestBlock,
-    // })
   }
 
   public async fetchData() {
@@ -60,6 +54,10 @@ export default class HandleGetDataBlockchainsController {
 
     const newBlockInBlockchain = await this.provider.getBlockNumber()
     const startBlock = await this.getLatestBlock()
+    if (newBlockInBlockchain < startBlock) {
+      console.log('No new block in blockchain')
+      return
+    }
     const endBlock = startBlock + this.stepBlock
 
     const getTransactionData = async (eventNames: string[], fromBlock: number, toBlock: number) => {
@@ -75,6 +73,8 @@ export default class HandleGetDataBlockchainsController {
           const index = event.logIndex
           const transactionHash = event.transactionHash
           const method = eventName
+          console.log('dataTest:::', method)
+
           const blockNumber = String(event.blockNumber)
           const timestamp = String(block.timestamp)
           const from = event.args?._from
@@ -116,11 +116,13 @@ export default class HandleGetDataBlockchainsController {
         }
       }
     }
+    console.log('chain: ', env.get('CHAIN_TMX_TESTNET'))
     console.log('BlockNumber: ', { newBlockInBlockchain, startBlock, endBlock })
     await getTransactionData(this.eventNames, startBlock, endBlock)
     if (endBlock >= newBlockInBlockchain) {
       return await this.updateLatestBlock(newBlockInBlockchain)
     }
+
     await this.updateLatestBlock(endBlock)
   }
 }
